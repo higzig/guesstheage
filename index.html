@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Guess the Age">
+<meta name="theme-color" content="#0a0a0f">
+<title>Guess the Age 🍻</title>
+
+<!-- PWA Manifest inline -->
+<script>
+const manifestData = {
+  name: "Guess the Age",
+  short_name: "GuessAge",
+  description: "A celebrity age guessing drinking game",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#0a0a0f",
+  theme_color: "#0a0a0f",
+  orientation: "portrait",
+  icons: [
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230a0a0f'/><text y='130' x='20' font-size='140'>🍺</text></svg>", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230a0a0f'/><text y='360' x='40' font-size='380'>🍺</text></svg>", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+const manifestUrl = URL.createObjectURL(blob);
+document.write('<link rel="manifest" href="' + manifestUrl + '">');
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #12121a;
+    --border: #2a2a3a;
+    --neon: #f0c040;
+    --neon2: #ff6b6b;
+    --neon3: #6bffb8;
+    --text: #f0ede8;
+    --muted: #666;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif;
+    min-height: 100vh; min-height: -webkit-fill-available;
+    overflow-x: hidden; overscroll-behavior: none;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active {
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; min-height: -webkit-fill-available;
+    padding: calc(16px + var(--safe-top)) 16px calc(24px + var(--safe-bottom));
+  }
+
+  /* ── SHARED COMPONENTS ── */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; }
+  .card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--neon); margin-bottom: 16px; }
+  .text-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 15px; outline: none; transition: border-color 0.2s; }
+  .text-input:focus { border-color: var(--neon); }
+  .text-input::placeholder { color: #333; }
+  .btn-primary { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--neon); color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px rgba(240,192,64,0.3); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-ghost { padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover, .btn-ghost:active { border-color: var(--text); color: var(--text); }
+  .section-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── INSTALL BANNER ── */
+  #installBanner {
+    display: none; position: fixed; bottom: calc(16px + var(--safe-bottom)); left: 16px; right: 16px;
+    background: var(--card); border: 1px solid var(--neon); border-radius: 16px;
+    padding: 14px 16px; z-index: 200; align-items: center; gap: 12px;
+    box-shadow: 0 0 30px rgba(240,192,64,0.2); animation: slideUp 0.3s ease;
+  }
+  #installBanner.show { display: flex; }
+  #installBanner .banner-icon { font-size: 28px; flex-shrink: 0; }
+  #installBanner .banner-text { flex: 1; }
+  #installBanner .banner-text strong { display: block; font-size: 14px; color: var(--neon); }
+  #installBanner .banner-text span { font-size: 12px; color: var(--muted); }
+  #installBanner .banner-btns { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-install { padding: 8px 14px; border-radius: 8px; border: none; background: var(--neon); color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px; cursor: pointer; }
+  .btn-dismiss { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 14px; cursor: pointer; }
+
+  /* iOS install tip */
+  #iosTip {
+    display: none; position: fixed; bottom: calc(16px + var(--safe-bottom)); left: 16px; right: 16px;
+    background: var(--card); border: 1px solid var(--neon); border-radius: 16px;
+    padding: 16px; z-index: 200; box-shadow: 0 0 30px rgba(240,192,64,0.2); animation: slideUp 0.3s ease;
+  }
+  #iosTip.show { display: block; }
+  #iosTip p { font-size: 13px; color: var(--text); line-height: 1.6; }
+  #iosTip p strong { color: var(--neon); }
+  #iosTip button { margin-top: 10px; float: right; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; }
+
+  /* ── SETUP ── */
+  #setup { justify-content: center; gap: 20px; max-width: 460px; margin: 0 auto; width: 100%; }
+  .logo { text-align: center; }
+  .logo h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 13vw, 76px); letter-spacing: 4px; color: var(--neon); text-shadow: 0 0 30px rgba(240,192,64,0.5), 0 0 60px rgba(240,192,64,0.2); line-height: 1; }
+  .logo p { color: var(--muted); font-size: 12px; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+  .beer-emoji { font-size: 36px; animation: bounce 1.5s ease-in-out infinite; display: block; text-align: center; margin-bottom: 4px; }
+  .player-count-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .player-count-row label { font-size: 14px; color: var(--muted); flex: 1; }
+  .counter-btns { display: flex; align-items: center; gap: 12px; }
+  .cnt-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 20px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+  .cnt-btn:active { border-color: var(--neon); color: var(--neon); }
+  .cnt-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--neon); min-width: 30px; text-align: center; }
+  #playerNamesContainer { display: flex; flex-direction: column; gap: 10px; }
+  .player-input-row { display: flex; align-items: center; gap: 10px; animation: fadeIn 0.2s ease; }
+  .player-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--neon); color: var(--bg); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* Category filter */
+  .cat-filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cat-chip {
+    padding: 7px 13px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .cat-chip:active { transform: scale(0.96); }
+  .cat-chip.active { background: rgba(240,192,64,0.15); border-color: var(--neon); color: var(--neon); }
+  .cat-chip.all.active { background: rgba(107,255,184,0.15); border-color: var(--neon3); color: var(--neon3); }
+  .cat-count { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .cat-count span { color: var(--neon); font-weight: 600; }
+
+  .setup-btn-row { display: flex; gap: 12px; width: 100%; }
+  .btn-edit-celebs { flex: 1; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .btn-edit-celebs:active { border-color: var(--neon3); color: var(--neon3); }
+
+  /* ── EDITOR ── */
+  #editor { justify-content: flex-start; gap: 0; max-width: 480px; margin: 0 auto; width: 100%; padding-bottom: 40px; }
+  .editor-header { width: 100%; display: flex; align-items: center; gap: 14px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .editor-header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--neon); letter-spacing: 2px; flex: 1; }
+  .badge { background: rgba(240,192,64,0.15); border: 1px solid rgba(240,192,64,0.3); color: var(--neon); font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+  .add-form { margin-bottom: 20px; width: 100%; }
+  .add-form .card { padding: 18px; }
+  .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .wiki-search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .wiki-search-row .text-input { flex: 1; }
+  .btn-search { padding: 10px 14px; border-radius: 10px; background: rgba(107,255,184,0.1); color: var(--neon3); font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; border: 1px solid rgba(107,255,184,0.25); }
+  .btn-search:active { background: rgba(107,255,184,0.2); }
+  .photo-results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 12px; }
+  .photo-option { aspect-ratio: 1; border-radius: 9px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; background: #1a1a24; position: relative; }
+  .photo-option img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .photo-option.selected { border-color: var(--neon3); box-shadow: 0 0 10px rgba(107,255,184,0.35); }
+  .photo-option .check { position: absolute; top: 3px; right: 3px; background: var(--neon3); color: var(--bg); border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .photo-option.selected .check { display: flex; }
+  .search-status { font-size: 13px; color: var(--muted); text-align: center; padding: 14px 0; }
+  .hint-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+  .hint-chip { padding: 6px 11px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .hint-chip.active { background: rgba(240,192,64,0.12); border-color: var(--neon); color: var(--neon); }
+  .btn-add-celeb { width: 100%; padding: 12px; border-radius: 12px; border: none; background: var(--neon3); color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; }
+  .btn-add-celeb:disabled { opacity: 0.35; cursor: not-allowed; }
+  .celeb-list { width: 100%; display: flex; flex-direction: column; gap: 9px; }
+  .celeb-list-item { display: flex; align-items: center; gap: 11px; background: var(--card); border: 1px solid var(--border); border-radius: 13px; padding: 11px; animation: fadeIn 0.2s ease; }
+  .cli-thumb { width: 50px; height: 50px; border-radius: 9px; overflow: hidden; flex-shrink: 0; background: #1a1a24; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .cli-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .cli-info { flex: 1; min-width: 0; }
+  .cli-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cli-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .cli-actions { display: flex; gap: 5px; flex-shrink: 0; }
+  .btn-icon { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .btn-icon.del:active { border-color: var(--neon2); color: var(--neon2); }
+  .btn-icon.edit:active { border-color: var(--neon); color: var(--neon); }
+  .empty-state { text-align: center; padding: 36px 20px; color: var(--muted); }
+  .empty-state .big { font-size: 44px; margin-bottom: 10px; display: block; }
+
+  /* ── GAME ── */
+  #game { justify-content: flex-start; gap: 0; max-width: 480px; margin: 0 auto; width: 100%; padding-bottom: 30px; }
+  .game-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 0 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .turn-badge { background: var(--neon); color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1px; padding: 5px 13px; border-radius: 20px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .round-info { color: var(--muted); font-size: 13px; text-align: right; }
+  .round-info span { color: var(--text); font-weight: 600; }
+  .celeb-card { width: 100%; border-radius: 22px; overflow: hidden; background: var(--card); border: 1px solid var(--border); margin-bottom: 16px; }
+  .celeb-img-wrap { position: relative; width: 100%; padding-top: 85%; overflow: hidden; background: #1a1a24; }
+  .celeb-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .celeb-img-wrap .img-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; }
+  .celeb-name-bar { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+  .celeb-name { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; }
+  .celeb-hint { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .guess-section { width: 100%; }
+  .guess-section > label { display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+  .guess-input-row { display: flex; gap: 9px; margin-bottom: 12px; }
+  .age-input { flex: 1; background: var(--card); border: 2px solid var(--border); border-radius: 13px; padding: 14px; color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px; text-align: center; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
+  .age-input::-webkit-inner-spin-button, .age-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .btn-submit { padding: 14px 20px; border-radius: 13px; border: none; background: var(--neon2); color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: 2px; cursor: pointer; box-shadow: 0 0 16px rgba(255,107,107,0.3); white-space: nowrap; }
+  .btn-submit:active { transform: scale(0.97); }
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .np-btn { padding: 15px; border-radius: 11px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 19px; font-weight: 600; cursor: pointer; text-align: center; transition: background 0.1s; user-select: none; }
+  .np-btn:active { background: #252535; transform: scale(0.95); }
+  .np-btn.del { color: var(--neon2); }
+  .np-btn.zero { grid-column: span 2; }
+
+  /* ── RESULT ── */
+  #result { justify-content: center; align-items: center; gap: 18px; max-width: 460px; margin: 0 auto; width: 100%; }
+  .result-icon { font-size: 76px; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .result-card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 24px; width: 100%; text-align: center; }
+  .result-player { color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .result-celeb { font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin-bottom: 18px; }
+  .result-ages { display: flex; justify-content: center; gap: 16px; margin-bottom: 18px; }
+  .age-box { flex: 1; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 14px; }
+  .age-box label { display: block; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 5px; }
+  .age-box .val { font-family: 'Bebas Neue', sans-serif; font-size: 38px; }
+  .age-box.actual .val { color: var(--neon3); }
+  .age-box.guess .val { color: var(--neon); }
+  .diff-display { margin-bottom: 14px; }
+  .diff-num { font-family: 'Bebas Neue', sans-serif; font-size: 68px; line-height: 1; color: var(--neon2); text-shadow: 0 0 24px rgba(255,107,107,0.4); }
+  .diff-label { font-size: 13px; color: var(--muted); margin-top: -4px; }
+  .drink-verdict { border-radius: 14px; padding: 14px 18px; margin-bottom: 6px; font-weight: 600; font-size: 15px; }
+  .drink-verdict.great { background: rgba(107,255,184,0.1); border: 1px solid rgba(107,255,184,0.3); color: var(--neon3); }
+  .drink-verdict.good { background: rgba(240,192,64,0.1); border: 1px solid rgba(240,192,64,0.3); color: var(--neon); }
+  .drink-verdict.bad { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: var(--neon2); }
+  .celeb-dob { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .btn-next { width: 100%; padding: 15px; border-radius: 13px; border: none; background: var(--neon3); color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 21px; letter-spacing: 2px; cursor: pointer; box-shadow: 0 0 18px rgba(107,255,184,0.25); }
+  .btn-next:active { transform: scale(0.98); }
+
+  /* ── SCOREBOARD ── */
+  #scores { justify-content: flex-start; gap: 14px; max-width: 460px; margin: 0 auto; width: 100%; }
+  #scores h1 { font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: var(--neon); letter-spacing: 3px; text-align: center; }
+  #scores > p { color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-top: -8px; }
+  .score-item { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 15px 18px; display: flex; align-items: center; gap: 13px; animation: slideUp 0.3s ease forwards; opacity: 0; }
+  .rank-num { font-family: 'Bebas Neue', sans-serif; font-size: 26px; width: 34px; text-align: center; flex-shrink: 0; }
+  .rank-num.gold { color: #ffd700; } .rank-num.silver { color: #c0c0c0; } .rank-num.bronze { color: #cd7f32; }
+  .score-name { flex: 1; font-size: 17px; font-weight: 600; }
+  .score-drinks { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--neon2); display: flex; align-items: center; gap: 5px; }
+  .btn-restart { width: 100%; padding: 15px; border-radius: 13px; border: 2px solid var(--neon); background: transparent; color: var(--neon); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
+  .btn-restart:active { background: var(--neon); color: var(--bg); }
+
+  /* ── MODAL ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 100; align-items: flex-start; justify-content: center; padding: calc(20px + var(--safe-top)) 16px calc(20px + var(--safe-bottom)); overflow-y: auto; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 22px; width: 100%; max-width: 440px; margin: auto; }
+  .modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--neon); letter-spacing: 2px; margin-bottom: 18px; }
+  .modal-fields { display: flex; flex-direction: column; gap: 10px; }
+  .modal-btns { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-save { flex: 1; padding: 12px; border-radius: 11px; border: none; background: var(--neon); color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; cursor: pointer; }
+  .btn-cancel { padding: 12px 18px; border-radius: 11px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- ═══ INSTALL BANNER (Android/Chrome) ═══ -->
+<div id="installBanner">
+  <div class="banner-icon">🍺</div>
+  <div class="banner-text">
+    <strong>Add to Home Screen</strong>
+    <span>Play like a real app, offline too!</span>
+  </div>
+  <div class="banner-btns">
+    <button class="btn-install" id="installBtn">Install</button>
+    <button class="btn-dismiss" id="dismissBanner">✕</button>
+  </div>
+</div>
+
+<!-- iOS tip -->
+<div id="iosTip">
+  <p>📲 <strong>Add to Home Screen on iPhone:</strong><br>
+  Tap the <strong>Share</strong> button (□↑) at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong> — it'll appear as a full-screen app!</p>
+  <button id="dismissIosTip">Got it ✓</button>
+</div>
+
+<!-- ═══ SETUP ═══ -->
+<div id="setup" class="screen active">
+  <div class="logo">
+    <span class="beer-emoji">🍺</span>
+    <h1>GUESS<br>THE AGE</h1>
+    <p>A party drinking game</p>
+  </div>
+
+  <div class="card">
+    <h2>👥 Players</h2>
+    <div class="player-count-row">
+      <label>How many players?</label>
+      <div class="counter-btns">
+        <button class="cnt-btn" id="decreaseBtn">−</button>
+        <div class="cnt-num" id="playerCount">2</div>
+        <button class="cnt-btn" id="increaseBtn">+</button>
+      </div>
+    </div>
+    <div id="playerNamesContainer"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎮 Rounds</h2>
+    <div class="player-count-row">
+      <label>Celebrities per player</label>
+      <div class="counter-btns">
+        <button class="cnt-btn" id="decreaseRounds">−</button>
+        <div class="cnt-num" id="roundCount">3</div>
+        <button class="cnt-btn" id="increaseRounds">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎭 Celebrity Categories</h2>
+    <div class="cat-filter-row" id="catFilterRow"></div>
+    <div class="cat-count" id="catCount"></div>
+  </div>
+
+  <div class="setup-btn-row">
+    <button class="btn-edit-celebs" id="editCelebsBtn">✏️ Edit List</button>
+    <button class="btn-primary" id="startBtn" style="flex:2">LET'S DRINK 🍻</button>
+  </div>
+</div>
+
+<!-- ═══ CELEBRITY EDITOR ═══ -->
+<div id="editor" class="screen">
+  <div class="editor-header">
+    <button class="btn-ghost" id="backFromEditor">← Back</button>
+    <h1>CELEBRITIES</h1>
+    <span class="badge" id="celebCountBadge">0</span>
+  </div>
+
+  <div class="add-form">
+    <div class="card">
+      <h2 id="formTitle">➕ ADD CELEBRITY</h2>
+      <span class="section-label">Full Name</span>
+      <div class="form-row"><input class="text-input" id="newName" placeholder="e.g. Taylor Swift"></div>
+      <span class="section-label" style="margin-top:10px">Date of Birth</span>
+      <div class="form-row"><input class="text-input" id="newDob" type="date"></div>
+      <span class="section-label" style="margin-top:10px">Category</span>
+      <div class="hint-row" id="hintChips">
+        <button class="hint-chip active" data-hint="🎬 Actor">🎬 Actor</button>
+        <button class="hint-chip" data-hint="🎬 Actress">🎬 Actress</button>
+        <button class="hint-chip" data-hint="🎵 Singer">🎵 Singer</button>
+        <button class="hint-chip" data-hint="🎵 Rapper">🎵 Rapper</button>
+        <button class="hint-chip" data-hint="⚽ Athlete">⚽ Athlete</button>
+        <button class="hint-chip" data-hint="📺 TV Host">📺 TV Host</button>
+        <button class="hint-chip" data-hint="😂 Comedian">😂 Comedian</button>
+        <button class="hint-chip" data-hint="👑 Royalty">👑 Royalty</button>
+      </div>
+      <span class="section-label">Photo — Search Wikipedia</span>
+      <div class="wiki-search-row">
+        <input class="text-input" id="wikiSearch" placeholder="Name to search…">
+        <button class="btn-search" id="wikiSearchBtn">🔍 Search</button>
+      </div>
+      <div id="photoResults"></div>
+      <input type="hidden" id="selectedImgUrl">
+      <button class="btn-add-celeb" id="addCelebBtn" disabled>ADD TO LIST</button>
+    </div>
+  </div>
+  <div id="celebList" class="celeb-list"></div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>✏️ EDIT CELEBRITY</h2>
+    <div class="modal-fields">
+      <span class="section-label">Full Name</span>
+      <input class="text-input" id="editName" placeholder="Full name">
+      <span class="section-label">Date of Birth</span>
+      <input class="text-input" id="editDob" type="date">
+      <span class="section-label">Category</span>
+      <div class="hint-row" id="editHintChips">
+        <button class="hint-chip active" data-hint="🎬 Actor">🎬 Actor</button>
+        <button class="hint-chip" data-hint="🎬 Actress">🎬 Actress</button>
+        <button class="hint-chip" data-hint="🎵 Singer">🎵 Singer</button>
+        <button class="hint-chip" data-hint="🎵 Rapper">🎵 Rapper</button>
+        <button class="hint-chip" data-hint="⚽ Athlete">⚽ Athlete</button>
+        <button class="hint-chip" data-hint="📺 TV Host">📺 TV Host</button>
+        <button class="hint-chip" data-hint="😂 Comedian">😂 Comedian</button>
+        <button class="hint-chip" data-hint="👑 Royalty">👑 Royalty</button>
+      </div>
+      <span class="section-label">Update Photo</span>
+      <div class="wiki-search-row">
+        <input class="text-input" id="editWikiSearch" placeholder="Search Wikipedia…">
+        <button class="btn-search" id="editWikiSearchBtn">🔍</button>
+      </div>
+      <div id="editPhotoResults"></div>
+      <input type="hidden" id="editSelectedImg">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="cancelEdit">Cancel</button>
+      <button class="btn-save" id="saveEdit">SAVE CHANGES</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div id="game" class="screen">
+  <div class="game-header">
+    <div class="turn-badge" id="turnBadge">Player 1</div>
+    <div class="round-info">Round <span id="roundDisplay">1</span> of <span id="totalRoundsDisplay">3</span></div>
+  </div>
+  <div class="celeb-card">
+    <div class="celeb-img-wrap">
+      <div class="img-placeholder" id="imgPlaceholder">⭐</div>
+      <img id="celebImg" src="" alt="" style="display:none;"
+        onload="this.style.display='block';document.getElementById('imgPlaceholder').style.display='none';"
+        onerror="this.style.display='none';document.getElementById('imgPlaceholder').style.display='flex';">
+    </div>
+    <div class="celeb-name-bar">
+      <div class="celeb-name" id="celebName">Celebrity</div>
+      <div class="celeb-hint" id="celebHint">🎬 Actor</div>
+    </div>
+  </div>
+  <div class="guess-section">
+    <label>Enter your guess</label>
+    <div class="guess-input-row">
+      <input type="number" class="age-input" id="ageInput" placeholder="??" min="1" max="120" readonly>
+      <button class="btn-submit" id="submitBtn">GUESS!</button>
+    </div>
+    <div class="numpad">
+      <button class="np-btn" data-val="1">1</button>
+      <button class="np-btn" data-val="2">2</button>
+      <button class="np-btn" data-val="3">3</button>
+      <button class="np-btn" data-val="4">4</button>
+      <button class="np-btn" data-val="5">5</button>
+      <button class="np-btn" data-val="6">6</button>
+      <button class="np-btn" data-val="7">7</button>
+      <button class="np-btn" data-val="8">8</button>
+      <button class="np-btn" data-val="9">9</button>
+      <button class="np-btn del" data-val="del">⌫</button>
+      <button class="np-btn zero" data-val="0">0</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESULT ═══ -->
+<div id="result" class="screen">
+  <div class="result-icon" id="resultIcon">🎯</div>
+  <div class="result-card">
+    <div class="result-player" id="resultPlayer">PLAYER 1</div>
+    <div class="result-celeb" id="resultCeleb">Celebrity</div>
+    <div class="result-ages">
+      <div class="age-box actual"><label>Actual Age</label><div class="val" id="actualAge">--</div></div>
+      <div class="age-box guess"><label>Your Guess</label><div class="val" id="guessedAge">--</div></div>
+    </div>
+    <div class="diff-display">
+      <div class="diff-num" id="diffNum">0</div>
+      <div class="diff-label" id="diffLabel">years off</div>
+    </div>
+    <div class="drink-verdict" id="drinkVerdict"></div>
+    <div class="celeb-dob" id="celebDob"></div>
+  </div>
+  <button class="btn-next" id="nextBtn">NEXT PLAYER →</button>
+</div>
+
+<!-- ═══ SCOREBOARD ═══ -->
+<div id="scores" class="screen">
+  <h1>FINAL SCORES</h1>
+  <p>Total sips consumed 🍺</p>
+  <div id="scoreList"></div>
+  <button class="btn-restart" id="restartBtn">PLAY AGAIN</button>
+</div>
+
+<!-- ═══ SERVICE WORKER + PWA ═══ -->
+<script>
+// Register inline service worker for offline support
+const swCode = `
+const CACHE = 'gta-v1';
+const ASSETS = [location.href];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match(e.request))));
+});
+`;
+if ('serviceWorker' in navigator) {
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// Install prompt (Android Chrome)
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!localStorage.getItem('installDismissed')) {
+    setTimeout(() => document.getElementById('installBanner').classList.add('show'), 2000);
+  }
+});
+document.getElementById('installBtn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBanner').classList.remove('show');
+};
+document.getElementById('dismissBanner').onclick = () => {
+  document.getElementById('installBanner').classList.remove('show');
+  localStorage.setItem('installDismissed', '1');
+};
+
+// iOS tip
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+if (isIOS && !isStandalone && !localStorage.getItem('iosTipDismissed')) {
+  setTimeout(() => document.getElementById('iosTip').classList.add('show'), 2500);
+}
+document.getElementById('dismissIosTip').onclick = () => {
+  document.getElementById('iosTip').classList.remove('show');
+  localStorage.setItem('iosTipDismissed', '1');
+};
+</script>
+
+<script>
+// ============================================================
+// DEFAULT CELEBRITY LIST
+// Edit directly here: { name, dob: "YYYY-MM-DD", hint, img }
+// ============================================================
+const DEFAULT_CELEBRITIES = [
+  { name: "Taylor Swift",      dob: "1989-12-13", hint: "🎵 Singer",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/191125_Taylor_Swift_at_the_2019_American_Music_Awards_%28cropped%29.png/440px-191125_Taylor_Swift_at_the_2019_American_Music_Awards_%28cropped%29.png" },
+  { name: "Dwayne Johnson",    dob: "1972-05-02", hint: "🎬 Actor",   img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Dwayne_Johnson_2014_%28cropped%29.jpg/440px-Dwayne_Johnson_2014_%28cropped%29.jpg" },
+  { name: "Beyoncé",           dob: "1981-09-04", hint: "🎵 Singer",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Beyonc%C3%A9_at_The_Lion_King_European_Premiere_2019.png/440px-Beyonc%C3%A9_at_The_Lion_King_European_Premiere_2019.png" },
+  { name: "Ryan Reynolds",     dob: "1976-10-23", hint: "🎬 Actor",   img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Ryan_Reynolds_at_SiriusXM_Studios_%28cropped%29.jpg/440px-Ryan_Reynolds_at_SiriusXM_Studios_%28cropped%29.jpg" },
+  { name: "Ariana Grande",     dob: "1993-06-26", hint: "🎵 Singer",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Ariana_Grande_at_2020_BBMAs.png/440px-Ariana_Grande_at_2020_BBMAs.png" },
+  { name: "Brad Pitt",         dob: "1963-12-18", hint: "🎬 Actor",   img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Brad_Pitt_2019_by_Glenn_Francis.jpg/440px-Brad_Pitt_2019_by_Glenn_Francis.jpg" },
+  { name: "Rihanna",           dob: "1988-02-20", hint: "🎵 Singer",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Rihanna_Fenty_2018.png/440px-Rihanna_Fenty_2018.png" },
+  { name: "Chris Hemsworth",   dob: "1983-08-11", hint: "🎬 Actor",   img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Chris_Hemsworth_by_Gage_Skidmore_2.jpg/440px-Chris_Hemsworth_by_Gage_Skidmore_2.jpg" },
+  { name: "Jennifer Lopez",    dob: "1969-07-24", hint: "🎵 Singer",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Jennifer_Lopez_in_2019.jpg/440px-Jennifer_Lopez_in_2019.jpg" },
+  { name: "Tom Cruise",        dob: "1962-07-03", hint: "🎬 Actor",   img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Tom_Cruise_by_Gage_Skidmore_2.jpg/440px-Tom_Cruise_by_Gage_Skidmore_2.jpg" },
+  { name: "Margot Robbie",     dob: "1990-07-02", hint: "🎬 Actress", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Margot_Robbie_in_2023.jpg/440px-Margot_Robbie_in_2023.jpg" },
+  { name: "Ed Sheeran",        dob: "1991-02-17", hint: "🎵 Singer",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Ed_Sheeran-6886_%28cropped%29.jpg/440px-Ed_Sheeran-6886_%28cropped%29.jpg" },
+  { name: "Cardi B",           dob: "1992-10-11", hint: "🎵 Rapper",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Cardi_B_at_2019_Grammys_%28cropped%29.png/440px-Cardi_B_at_2019_Grammys_%28cropped%29.png" },
+  { name: "Leonardo DiCaprio", dob: "1974-11-11", hint: "🎬 Actor",   img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Leonardo_Dicaprio_Cannes_2019.jpg/440px-Leonardo_Dicaprio_Cannes_2019.jpg" },
+  { name: "Adele",             dob: "1988-05-05", hint: "🎵 Singer",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Adele_2016.jpg/440px-Adele_2016.jpg" },
+  { name: "Zendaya",           dob: "1996-09-01", hint: "🎬 Actress", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Zendaya_2019_by_Glenn_Francis.jpg/440px-Zendaya_2019_by_Glenn_Francis.jpg" },
+  { name: "Bad Bunny",         dob: "1994-03-10", hint: "🎵 Rapper",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Bad_Bunny_2022.jpg/440px-Bad_Bunny_2022.jpg" },
+  { name: "Scarlett Johansson",dob: "1984-11-22", hint: "🎬 Actress", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Scarlett_Johansson_2010.jpg/440px-Scarlett_Johansson_2010.jpg" },
+  { name: "Drake",             dob: "1986-10-24", hint: "🎵 Rapper",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Drake_July_2016.jpg/440px-Drake_July_2016.jpg" },
+  { name: "Jennifer Aniston",  dob: "1969-02-11", hint: "🎬 Actress", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Jennifer_Aniston_2022.jpg/440px-Jennifer_Aniston_2022.jpg" },
+  { name: "Eminem",            dob: "1972-10-17", hint: "🎵 Rapper",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Eminem_2022.jpg/440px-Eminem_2022.jpg" },
+  { name: "Gal Gadot",         dob: "1985-04-30", hint: "🎬 Actress", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Gal_Gadot_2020.jpg/440px-Gal_Gadot_2020.jpg" },
+  { name: "Post Malone",       dob: "1995-07-04", hint: "🎵 Rapper",  img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Post_Malone_2019_by_Glenn_Francis.jpg/440px-Post_Malone_2019_by_Glenn_Francis.jpg" },
+  { name: "Keanu Reeves",      dob: "1964-09-02", hint: "🎬 Actor",   img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Keanu_Reeves_2014_%28cropped%29.jpg/440px-Keanu_Reeves_2014_%28cropped%29.jpg" },
+];
+
+// ── STORAGE ──────────────────────────────────────────────────
+function loadCelebritiesFromStorage() {
+  try {
+    const saved = localStorage.getItem('gta_celebrities');
+    return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_CELEBRITIES));
+  } catch { return JSON.parse(JSON.stringify(DEFAULT_CELEBRITIES)); }
+}
+function saveCelebritiesToStorage() {
+  try { localStorage.setItem('gta_celebrities', JSON.stringify(celebrities)); } catch {}
+}
+
+let celebrities = loadCelebritiesFromStorage();
+
+// ── UTILS ─────────────────────────────────────────────────────
+function calcAge(dob) {
+  const b = new Date(dob), n = new Date();
+  let a = n.getFullYear() - b.getFullYear();
+  if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) a--;
+  return a;
+}
+function formatDob(dob) { return new Date(dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
+function getDrinkVerdict(diff) {
+  if (diff === 0) return { msg: "🎯 PERFECT! Give out 5 sips!", cls: "great", drinks: 0 };
+  if (diff === 1) return { msg: "🔥 1 year off — 1 sip!", cls: "great", drinks: 1 };
+  if (diff <= 5)  return { msg: `😬 ${diff} years off — ${diff} sips!`, cls: "good", drinks: diff };
+  if (diff <= 10) return { msg: `😅 ${diff} years off — ${diff} sips!`, cls: "good", drinks: diff };
+  return { msg: `💀 ${diff} years off — ${diff} sips!`, cls: "bad", drinks: diff };
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── CATEGORY FILTER ───────────────────────────────────────────
+// Derives categories dynamically from the celebrity list
+let selectedCategories = new Set(['ALL']); // 'ALL' means no filter
+
+function getUniqueCategories() {
+  return [...new Set(celebrities.map(c => c.hint))].sort();
+}
+
+function buildCategoryChips() {
+  const row = document.getElementById('catFilterRow');
+  const cats = getUniqueCategories();
+  // Restore saved selection, defaulting to ALL
+  try {
+    const saved = JSON.parse(localStorage.getItem('gta_cats') || '["ALL"]');
+    selectedCategories = new Set(saved);
+  } catch { selectedCategories = new Set(['ALL']); }
+
+  row.innerHTML = '';
+
+  // ALL chip
+  const allChip = document.createElement('button');
+  allChip.className = 'cat-chip all' + (selectedCategories.has('ALL') ? ' active' : '');
+  allChip.textContent = '🌟 All';
+  allChip.onclick = () => {
+    selectedCategories = new Set(['ALL']);
+    buildCategoryChips();
+  };
+  row.appendChild(allChip);
+
+  // Per-category chips
+  cats.forEach(cat => {
+    const chip = document.createElement('button');
+    chip.className = 'cat-chip' + (!selectedCategories.has('ALL') && selectedCategories.has(cat) ? ' active' : '');
+    chip.textContent = cat;
+    chip.onclick = () => {
+      if (selectedCategories.has('ALL')) selectedCategories = new Set();
+      if (selectedCategories.has(cat)) {
+        selectedCategories.delete(cat);
+        if (selectedCategories.size === 0) selectedCategories = new Set(['ALL']);
+      } else {
+        selectedCategories.add(cat);
+        if (selectedCategories.size === cats.length) selectedCategories = new Set(['ALL']);
+      }
+      buildCategoryChips();
+    };
+    row.appendChild(chip);
+  });
+
+  try { localStorage.setItem('gta_cats', JSON.stringify([...selectedCategories])); } catch {}
+  updateCatCount();
+}
+
+function updateCatCount() {
+  const filtered = getFilteredCelebrities();
+  document.getElementById('catCount').innerHTML =
+    `<span>${filtered.length}</span> celebrit${filtered.length === 1 ? 'y' : 'ies'} in pool`;
+}
+
+function getFilteredCelebrities() {
+  if (selectedCategories.has('ALL')) return celebrities;
+  return celebrities.filter(c => selectedCategories.has(c.hint));
+}
+
+// ── WIKIPEDIA PHOTO SEARCH ────────────────────────────────────
+async function searchWikiPhotos(query, resultsEl, hiddenInput) {
+  resultsEl.innerHTML = `<div class="search-status">🔍 Searching Wikipedia…</div>`;
+  try {
+    const sRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=3`);
+    const sData = await sRes.json();
+    const pages = sData.query?.search || [];
+    if (!pages.length) { resultsEl.innerHTML = `<div class="search-status">No results. Try their full name.</div>`; return; }
+
+    const ids = pages.slice(0, 2).map(p => p.pageid).join('|');
+    const iRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&pageids=${ids}&prop=images&format=json&origin=*&imlimit=15`);
+    const iData = await iRes.json();
+    const filenames = [];
+    Object.values(iData.query?.pages || {}).forEach(page => {
+      (page.images || []).forEach(img => {
+        const t = img.title;
+        if (/\.(jpg|jpeg|png|webp)/i.test(t) && !/flag|logo|icon|map|coat|arms|seal|signature|stamp|award|ribbon/i.test(t))
+          filenames.push(t.replace('File:', ''));
+      });
+    });
+    if (!filenames.length) { resultsEl.innerHTML = `<div class="search-status">No photos found. Try a different search.</div>`; return; }
+
+    const titles = filenames.slice(0, 8).map(f => 'File:' + f).join('|');
+    const tRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=imageinfo&iiprop=url|thumburl&iiurlwidth=280&format=json&origin=*`);
+    const tData = await tRes.json();
+    const thumbs = Object.values(tData.query?.pages || {}).map(p => p.imageinfo?.[0]?.thumburl).filter(Boolean);
+    if (!thumbs.length) { resultsEl.innerHTML = `<div class="search-status">Could not load thumbnails.</div>`; return; }
+
+    resultsEl.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'photo-results';
+    thumbs.forEach(url => {
+      const div = document.createElement('div');
+      div.className = 'photo-option';
+      div.innerHTML = `<img src="${url}" loading="lazy" onerror="this.parentElement.style.display='none'"><div class="check">✓</div>`;
+      div.onclick = () => {
+        grid.querySelectorAll('.photo-option').forEach(o => o.classList.remove('selected'));
+        div.classList.add('selected');
+        hiddenInput.value = url;
+        updateAddBtnState();
+      };
+      grid.appendChild(div);
+    });
+    resultsEl.appendChild(grid);
+  } catch(e) {
+    resultsEl.innerHTML = `<div class="search-status">Search failed. Check connection.</div>`;
+  }
+}
+
+// ── EDITOR ────────────────────────────────────────────────────
+let selectedHint = "🎬 Actor";
+let editingIndex = -1;
+
+function renderCelebList() {
+  document.getElementById('celebCountBadge').textContent = celebrities.length;
+  const list = document.getElementById('celebList');
+  if (!celebrities.length) {
+    list.innerHTML = `<div class="empty-state"><span class="big">😬</span>No celebrities yet!<br>Add some above.</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  celebrities.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'celeb-list-item';
+    div.innerHTML = `
+      <div class="cli-thumb">${c.img ? `<img src="${c.img}" onerror="this.parentElement.innerHTML='⭐'">` : '⭐'}</div>
+      <div class="cli-info">
+        <div class="cli-name">${c.name}</div>
+        <div class="cli-meta">${c.hint} · Age ${calcAge(c.dob)} · ${formatDob(c.dob)}</div>
+      </div>
+      <div class="cli-actions">
+        <button class="btn-icon edit" onclick="openEdit(${i})">✏️</button>
+        <button class="btn-icon del" onclick="deleteCeleb(${i})">🗑️</button>
+      </div>`;
+    list.appendChild(div);
+  });
+  updateCatCount();
+}
+
+function deleteCeleb(i) {
+  if (confirm(`Remove ${celebrities[i].name}?`)) {
+    celebrities.splice(i, 1);
+    saveCelebritiesToStorage();
+    renderCelebList();
+    buildCategoryChips();
+  }
+}
+
+document.getElementById('hintChips').addEventListener('click', e => {
+  const ch = e.target.closest('.hint-chip'); if (!ch) return;
+  document.querySelectorAll('#hintChips .hint-chip').forEach(c => c.classList.remove('active'));
+  ch.classList.add('active'); selectedHint = ch.dataset.hint;
+});
+
+function updateAddBtnState() {
+  document.getElementById('addCelebBtn').disabled =
+    !(document.getElementById('newName').value.trim() && document.getElementById('newDob').value);
+}
+document.getElementById('newName').addEventListener('input', updateAddBtnState);
+document.getElementById('newDob').addEventListener('input', updateAddBtnState);
+document.getElementById('newName').addEventListener('blur', () => {
+  const n = document.getElementById('newName').value.trim();
+  if (n && !document.getElementById('wikiSearch').value) document.getElementById('wikiSearch').value = n;
+});
+
+document.getElementById('wikiSearchBtn').onclick = () => {
+  const q = document.getElementById('wikiSearch').value.trim() || document.getElementById('newName').value.trim();
+  if (q) searchWikiPhotos(q, document.getElementById('photoResults'), document.getElementById('selectedImgUrl'));
+};
+document.getElementById('wikiSearch').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('wikiSearchBtn').click(); });
+
+document.getElementById('addCelebBtn').onclick = () => {
+  const name = document.getElementById('newName').value.trim();
+  const dob  = document.getElementById('newDob').value;
+  const img  = document.getElementById('selectedImgUrl').value;
+  if (!name || !dob) return;
+  celebrities.push({ name, dob, hint: selectedHint, img });
+  saveCelebritiesToStorage();
+  renderCelebList();
+  buildCategoryChips();
+  document.getElementById('newName').value = '';
+  document.getElementById('newDob').value = '';
+  document.getElementById('wikiSearch').value = '';
+  document.getElementById('selectedImgUrl').value = '';
+  document.getElementById('photoResults').innerHTML = '';
+  updateAddBtnState();
+  document.getElementById('celebList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+// Edit modal
+function openEdit(i) {
+  editingIndex = i;
+  const c = celebrities[i];
+  document.getElementById('editName').value = c.name;
+  document.getElementById('editDob').value  = c.dob;
+  document.getElementById('editSelectedImg').value = c.img || '';
+  document.getElementById('editWikiSearch').value  = c.name;
+  document.getElementById('editPhotoResults').innerHTML = '';
+  document.querySelectorAll('#editHintChips .hint-chip').forEach(ch => ch.classList.toggle('active', ch.dataset.hint === c.hint));
+  document.getElementById('editModal').classList.add('open');
+}
+document.getElementById('cancelEdit').onclick = () => document.getElementById('editModal').classList.remove('open');
+document.getElementById('editModal').onclick = e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); };
+document.getElementById('editWikiSearchBtn').onclick = () => {
+  const q = document.getElementById('editWikiSearch').value.trim();
+  if (q) searchWikiPhotos(q, document.getElementById('editPhotoResults'), document.getElementById('editSelectedImg'));
+};
+document.getElementById('editWikiSearch').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('editWikiSearchBtn').click(); });
+document.getElementById('editHintChips').addEventListener('click', e => {
+  const ch = e.target.closest('.hint-chip'); if (!ch) return;
+  document.querySelectorAll('#editHintChips .hint-chip').forEach(c => c.classList.remove('active'));
+  ch.classList.add('active');
+});
+document.getElementById('saveEdit').onclick = () => {
+  if (editingIndex < 0) return;
+  const name = document.getElementById('editName').value.trim();
+  const dob  = document.getElementById('editDob').value;
+  const img  = document.getElementById('editSelectedImg').value;
+  const hint = document.querySelector('#editHintChips .hint-chip.active')?.dataset.hint || celebrities[editingIndex].hint;
+  if (!name || !dob) return;
+  celebrities[editingIndex] = { name, dob, hint, img };
+  saveCelebritiesToStorage();
+  renderCelebList();
+  buildCategoryChips();
+  document.getElementById('editModal').classList.remove('open');
+};
+
+document.getElementById('editCelebsBtn').onclick = () => { renderCelebList(); showScreen('editor'); };
+document.getElementById('backFromEditor').onclick = () => { buildCategoryChips(); showScreen('setup'); };
+
+// ── SETUP ─────────────────────────────────────────────────────
+let numPlayers = 2, numRounds = 3;
+
+function renderPlayerInputs() {
+  const c = document.getElementById('playerNamesContainer');
+  c.innerHTML = '';
+  for (let i = 0; i < numPlayers; i++) {
+    const row = document.createElement('div');
+    row.className = 'player-input-row';
+    row.innerHTML = `<div class="player-dot">${i+1}</div><input class="text-input" type="text" placeholder="Player ${i+1}" id="pname${i}" maxlength="16">`;
+    c.appendChild(row);
+  }
+}
+renderPlayerInputs();
+buildCategoryChips();
+
+document.getElementById('decreaseBtn').onclick = () => { if (numPlayers > 1) { numPlayers--; document.getElementById('playerCount').textContent = numPlayers; renderPlayerInputs(); } };
+document.getElementById('increaseBtn').onclick = () => { if (numPlayers < 10) { numPlayers++; document.getElementById('playerCount').textContent = numPlayers; renderPlayerInputs(); } };
+document.getElementById('decreaseRounds').onclick = () => { if (numRounds > 1) { numRounds--; document.getElementById('roundCount').textContent = numRounds; } };
+document.getElementById('increaseRounds').onclick = () => { if (numRounds < 10) { numRounds++; document.getElementById('roundCount').textContent = numRounds; } };
+
+// ── GAME STATE ────────────────────────────────────────────────
+let players = [], playerScores = [], rounds = 3;
+let currentPlayer = 0, currentTurn = 0, totalTurns = 0;
+let usedCelebs = [], currentCeleb = null, currentGuess = "";
+let activePool = [];  // filtered celebrity pool for this game
+
+document.getElementById('startBtn').onclick = () => {
+  activePool = getFilteredCelebrities();
+  if (!activePool.length) { alert('No celebrities in the selected categories! Choose more categories or add celebrities.'); return; }
+  players = [];
+  for (let i = 0; i < numPlayers; i++) {
+    const inp = document.getElementById(`pname${i}`);
+    players.push(inp.value.trim() || `Player ${i+1}`);
+  }
+  playerScores = players.map(() => 0);
+  rounds = numRounds; currentPlayer = 0; currentTurn = 0;
+  totalTurns = numPlayers * rounds; usedCelebs = [];
+  showScreen('game'); loadCeleb();
+};
+
+document.querySelectorAll('.np-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.val;
+    if (val === 'del') currentGuess = currentGuess.slice(0, -1);
+    else { if (currentGuess.length >= 3) return; currentGuess += val; }
+    document.getElementById('ageInput').value = currentGuess || '';
+  });
+});
+
+document.getElementById('submitBtn').onclick = submitGuess;
+
+function loadCeleb() {
+  currentGuess = ''; document.getElementById('ageInput').value = '';
+  const avail = activePool.filter(c => !usedCelebs.find(u => u.name === c.name));
+  const pool  = avail.length ? avail : activePool;
+  currentCeleb = pool[Math.floor(Math.random() * pool.length)];
+  usedCelebs.push(currentCeleb);
+  document.getElementById('turnBadge').textContent = players[currentPlayer];
+  document.getElementById('roundDisplay').textContent = Math.floor(currentTurn / numPlayers) + 1;
+  document.getElementById('totalRoundsDisplay').textContent = rounds;
+  document.getElementById('celebName').textContent = currentCeleb.name;
+  document.getElementById('celebHint').textContent = currentCeleb.hint;
+  const img = document.getElementById('celebImg'), ph = document.getElementById('imgPlaceholder');
+  img.style.display = 'none'; ph.style.display = 'flex';
+  if (currentCeleb.img) img.src = currentCeleb.img;
+}
+
+function submitGuess() {
+  const guess = parseInt(currentGuess);
+  if (!currentGuess || isNaN(guess) || guess < 1 || guess > 120) {
+    document.getElementById('ageInput').style.borderColor = '#ff6b6b';
+    setTimeout(() => document.getElementById('ageInput').style.borderColor = '', 600); return;
+  }
+  const actual = calcAge(currentCeleb.dob), diff = Math.abs(actual - guess);
+  const verdict = getDrinkVerdict(diff);
+  playerScores[currentPlayer] += verdict.drinks;
+  document.getElementById('resultPlayer').textContent  = players[currentPlayer].toUpperCase();
+  document.getElementById('resultCeleb').textContent   = currentCeleb.name;
+  document.getElementById('actualAge').textContent     = actual;
+  document.getElementById('guessedAge').textContent    = guess;
+  document.getElementById('diffNum').textContent       = diff;
+  document.getElementById('diffLabel').textContent     = diff === 0 ? '🎯 Spot on!' : `year${diff !== 1 ? 's' : ''} off`;
+  document.getElementById('drinkVerdict').textContent  = verdict.msg;
+  document.getElementById('drinkVerdict').className    = `drink-verdict ${verdict.cls}`;
+  document.getElementById('celebDob').textContent      = `Born: ${formatDob(currentCeleb.dob)}`;
+  document.getElementById('resultIcon').textContent    = diff === 0 ? '🎯' : diff <= 2 ? '🔥' : diff <= 5 ? '😅' : '💀';
+  currentTurn++;
+  document.getElementById('nextBtn').textContent = currentTurn >= totalTurns ? 'SEE SCORES 🏆' : 'NEXT PLAYER →';
+  showScreen('result');
+}
+
+document.getElementById('nextBtn').onclick = () => {
+  currentPlayer = (currentPlayer + 1) % numPlayers;
+  if (currentTurn >= totalTurns) { showScoreboard(); return; }
+  showScreen('game'); loadCeleb();
+};
+
+function showScoreboard() {
+  const sorted = players.map((name, i) => ({ name, drinks: playerScores[i] })).sort((a, b) => b.drinks - a.drinks);
+  const list = document.getElementById('scoreList');
+  list.innerHTML = '';
+  sorted.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'score-item'; div.style.animationDelay = `${i * 0.1}s`;
+    const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const m  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+    div.innerHTML = `<div class="rank-num ${rc}">${m}</div><div class="score-name">${p.name}</div><div class="score-drinks">${p.drinks}<span>🍺</span></div>`;
+    list.appendChild(div);
+  });
+  showScreen('scores');
+}
+
+document.getElementById('restartBtn').onclick = () => showScreen('setup');
+</script>
+</body>
+</html>
