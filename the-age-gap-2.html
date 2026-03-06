@@ -175,19 +175,6 @@ body::before{
 
 /* Pack color themes applied via inline style + CSS var */
 
-/* ── INSTALL BANNER ── */
-#installBanner{display:none;position:fixed;bottom:calc(14px + var(--safe-b));left:14px;right:14px;background:var(--card);border:1px solid var(--gold);border-radius:16px;padding:12px 14px;z-index:200;align-items:center;gap:10px;box-shadow:0 0 28px rgba(245,200,66,.18);animation:fadeUp .3s ease;}
-#installBanner.show{display:flex;}
-.ib-text strong{display:block;font-size:13px;color:var(--gold);}
-.ib-text span{font-size:11px;color:var(--muted);}
-.btn-install{padding:7px 13px;border-radius:8px;border:none;background:var(--gold);color:#080810;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;}
-.btn-dismiss{padding:7px 9px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;}
-#iosTip{display:none;position:fixed;bottom:calc(14px + var(--safe-b));left:14px;right:14px;background:var(--card);border:1px solid var(--gold);border-radius:16px;padding:16px;z-index:200;box-shadow:0 0 28px rgba(245,200,66,.18);animation:fadeUp .3s ease;}
-#iosTip.show{display:block;}
-#iosTip p{font-size:13px;color:var(--text);line-height:1.6;}
-#iosTip p strong{color:var(--gold);}
-#iosTip button{margin-top:8px;float:right;padding:5px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;}
-
 .btn-exit-game{
   width:32px;height:32px;border-radius:50%;border:1px solid var(--border2);
   background:transparent;color:var(--muted);font-size:14px;cursor:pointer;
@@ -353,21 +340,6 @@ body::before{
 </head>
 <body>
 
-<!-- Install Banner -->
-<div id="installBanner">
-  <div style="font-size:24px;flex-shrink:0">📲</div>
-  <div class="ib-text" style="flex:1"><strong>Add to Home Screen</strong><span>Play offline, anytime!</span></div>
-  <div style="display:flex;gap:6px;flex-shrink:0">
-    <button class="btn-install" id="installBtn">Install</button>
-    <button class="btn-dismiss" id="dismissBanner">✕</button>
-  </div>
-</div>
-<div id="iosTip">
-  <p>📲 <strong>Add to Home Screen on iPhone:</strong><br>
-  Tap the <strong>Share</strong> button (□↑) in Safari, then <strong>"Add to Home Screen"</strong></p>
-  <button id="dismissIos">Got it ✓</button>
-</div>
-
 <!-- ═══ SETUP ═══ -->
 <div id="setup" class="screen active">
   <div class="logo-wrap anim-fadeup">
@@ -419,6 +391,7 @@ body::before{
     <button class="btn-secondary" id="editBtn">➕ Add Celebs</button>
     <button class="btn-gold" id="startBtn" style="flex:2">ENTER THE GAP →</button>
   </div>
+  <button class="btn-ghost anim-fadeup" style="animation-delay:.3s;width:100%;text-align:center;margin-top:4px;" onclick="window.location.href='ryans-party-pack.html'">← Back to Party Pack</button>
 </div>
 
 <!-- Exit Game Confirmation -->
@@ -1638,36 +1611,7 @@ document.getElementById('exitConfirmBtn').onclick=()=>{
 })();
 
 // ══════════════════════════════════════════════════════════════
-// PWA
-// ══════════════════════════════════════════════════════════════
-const swCode=`const C='tag-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll([location.href])));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match(e.request))));});`;
-if('serviceWorker' in navigator){
-  const sb=new Blob([swCode],{type:'application/javascript'});
-  navigator.serviceWorker.register(URL.createObjectURL(sb)).catch(()=>{});
-}
-let dp=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();dp=e;
-  if(!localStorage.getItem('tag_installed'))
-    setTimeout(()=>document.getElementById('installBanner').classList.add('show'),2500);
-});
-document.getElementById('installBtn').onclick=async()=>{
-  if(!dp)return;dp.prompt();
-  await dp.userChoice; dp=null;
-  document.getElementById('installBanner').classList.remove('show');
-};
-document.getElementById('dismissBanner').onclick=()=>{
-  document.getElementById('installBanner').classList.remove('show');
-  localStorage.setItem('tag_installed','1');
-};
-const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-const isSA=navigator.standalone||window.matchMedia('(display-mode: standalone)').matches;
-if(isIOS&&!isSA&&!localStorage.getItem('tag_ios'))
-  setTimeout(()=>document.getElementById('iosTip').classList.add('show'),3000);
-document.getElementById('dismissIos').onclick=()=>{
-  document.getElementById('iosTip').classList.remove('show');
-  localStorage.setItem('tag_ios','1');
-};
+// (install prompt handled by Ryan's Party Pack)
 </script>
 </body>
 </html>

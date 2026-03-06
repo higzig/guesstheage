@@ -15,7 +15,7 @@
   --border:#1e2035; --border2:#2a2d48;
   --crimson:#c9222e; --crimson2:#a01820; --crimson-glow:rgba(201,34,46,0.3);
   --ivory:#f5f0e8; --gold:#c9a84c; --gold2:#a07830;
-  --text:#e8e4dc; --text2:#8a8aa8; --muted:#44465a;
+  --text:#e8e4dc; --text2:#b0aec8; --muted:#7a7a9a;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -102,12 +102,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .turn-pill{background:linear-gradient(135deg,var(--crimson),var(--crimson2));color:#fff;
   font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:5px 14px;
   border-radius:20px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.cards-left{color:var(--muted);font-size:12px;}
-.cards-left span{color:var(--text);font-weight:600;}
+.cards-left{color:rgba(255,255,255,.5);font-size:12px;}
+.cards-left span{color:#fff;font-weight:600;}
 
 /* Kings tracker row */
 .kings-tracker{width:100%;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.kings-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);flex-shrink:0;}
+.kings-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);flex-shrink:0;}
 .king-cards-row{display:flex;gap:7px;margin-left:auto;}
 
 /* Mini king card */
@@ -247,10 +247,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .rule-panel{width:100%;background:var(--card-bg);border:1px solid var(--border2);
   border-radius:18px;padding:18px 18px 16px;display:none;position:relative;z-index:1;}
 .rule-panel.visible{display:block;animation:ruleIn .3s ease both;}
-.rp-who{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
+.rp-who{font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.45);text-transform:uppercase;margin-bottom:3px;}
 .rp-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;margin-bottom:7px;line-height:1;}
-.rp-desc{font-size:16px;font-weight:600;line-height:1.4;margin-bottom:6px;}
-.rp-sub{font-size:13px;color:var(--text2);line-height:1.45;}
+.rp-desc{font-size:16px;font-weight:600;line-height:1.4;margin-bottom:6px;color:#fff;}
+.rp-sub{font-size:13px;color:rgba(255,255,255,.7);line-height:1.45;}
 
 .rp-crimson{border-color:rgba(201,34,46,.3);background:linear-gradient(160deg,rgba(201,34,46,.05),var(--card-bg));}
 .rp-crimson .rp-name{color:var(--crimson);}
@@ -359,7 +359,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       <div class="rule-chip"><strong>A</strong> — Waterfall</div>
       <div class="rule-chip"><strong>2</strong> — You</div>
       <div class="rule-chip"><strong>3</strong> — Me</div>
-      <div class="rule-chip"><strong>4</strong> — Girls drink</div>
+      <div class="rule-chip"><strong>4</strong> — Beours drink</div>
       <div class="rule-chip"><strong>5</strong> — Never Have I Ever</div>
       <div class="rule-chip"><strong>6</strong> — Guys drink</div>
       <div class="rule-chip"><strong>7</strong> — Heaven</div>
@@ -820,7 +820,7 @@ function applyRule(card){
       rp.innerHTML=head+`<div class="rp-desc">ME — You drink!</div><div class="rp-sub">${player} takes a drink.${mateNote}</div>`;
       doneRule();break;
     case'4':
-      rp.innerHTML=head+`<div class="rp-desc">WHORES — All girls drink!</div><div class="rp-sub">Every woman in the group takes a drink.</div>`;
+      rp.innerHTML=head+`<div class="rp-desc">BEOURS — All girls drink!</div><div class="rp-sub">Every woman in the group takes a drink.</div>`;
       doneRule();break;
     case'5':{
       const q=getNhie();
@@ -834,6 +834,7 @@ function applyRule(card){
       doneRule();break;
     case'7':
       rp.innerHTML=head+`<div class="rp-desc">HEAVEN — Hands up!</div><div class="rp-sub">Everyone raise your hand right now. Last person up drinks!</div>`;
+      playHeavenSound();
       doneRule();break;
     case'8':
       rp.innerHTML=head+`<div class="rp-desc">PICK A MATE!</div><div class="rp-sub" id="sub8">${player}, choose your mate — they drink every time you do for the rest of the game.</div>`;
@@ -893,7 +894,37 @@ function doKing(player,head){
   }
 }
 
-// ── ACTION BUILDERS ──
+// ── HEAVEN SOUND — angelic chime via Web Audio API ──
+function playHeavenSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // Angelic chord: root + major third + fifth + octave, soft attack, long decay
+    const notes=[523.25,659.25,783.99,1046.5,1318.5]; // C5 E5 G5 C6 E6
+    notes.forEach((freq,i)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      const now=ctx.currentTime;
+      osc.type='sine';
+      osc.frequency.setValueAtTime(freq,now);
+      // Stagger entry slightly for a harp-like sweep
+      const start=now+(i*0.07);
+      gain.gain.setValueAtTime(0,start);
+      gain.gain.linearRampToValueAtTime(0.18-(i*0.02),start+0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001,start+3.5);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start(start);osc.stop(start+3.5);
+    });
+    // Add a soft shimmer tremolo on top
+    const shimOsc=ctx.createOscillator();
+    const shimGain=ctx.createGain();
+    shimOsc.type='sine';shimOsc.frequency.value=2093; // C7 shimmer
+    shimGain.gain.setValueAtTime(0,ctx.currentTime+0.3);
+    shimGain.gain.linearRampToValueAtTime(0.08,ctx.currentTime+0.6);
+    shimGain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+4);
+    shimOsc.connect(shimGain);shimGain.connect(ctx.destination);
+    shimOsc.start(ctx.currentTime+0.3);shimOsc.stop(ctx.currentTime+4);
+  }catch(e){}
+}
 function buildPicker(container,currentPlayer,forMate,onPick){
   const wrap=document.createElement('div');wrap.className='player-picker';
   players.forEach(p=>{
