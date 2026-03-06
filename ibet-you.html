@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>I Bet You — Ryan's Party Pack</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080810;
+  --surface: #0f0f1a;
+  --card: #13131f;
+  --card2: #1a1a28;
+  --border: #252538;
+  --border2: #32324a;
+  --blue: #3b9eff;
+  --blue2: #1a7de8;
+  --blue3: #0d5fbf;
+  --blueglow: rgba(59,158,255,0.18);
+  --text: #f0ede8;
+  --text2: #a8a5c0;
+  --muted: #555570;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(59,158,255,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(26,125,232,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 5%, rgba(59,158,255,0.04) 0%, transparent 45%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(59,158,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 12%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 65%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 55%, rgba(59,158,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 10% 75%, rgba(59,158,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 62% 42%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 90%, rgba(59,158,255,0.3) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 82% 28%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48% 8%, rgba(59,158,255,0.4) 0%, transparent 100%);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes popIn    { 0% { opacity:0; transform:scale(.7); } 70% { transform:scale(1.08); } 100% { opacity:1; transform:scale(1); } }
+@keyframes shimmer  { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+@keyframes blueGlow { 0%,100% { text-shadow:0 0 20px rgba(59,158,255,.3); } 50% { text-shadow:0 0 50px rgba(59,158,255,.7), 0 0 90px rgba(59,158,255,.25); } }
+@keyframes pulse    { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+@keyframes timerPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(59,158,255,0.4); } 50% { box-shadow: 0 0 0 12px rgba(59,158,255,0); } }
+@keyframes urgentPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,80,80,0.6); } 50% { box-shadow: 0 0 0 16px rgba(255,80,80,0); } }
+@keyframes countDown { 0% { transform:scale(1.4); opacity:0; } 20% { opacity:1; transform:scale(1); } 80% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(.6); } }
+@keyframes scoreUp  { 0% { transform:translateY(0) scale(1); opacity:1; } 100% { transform:translateY(-40px) scale(1.3); opacity:0; } }
+@keyframes winCelebrate { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+@keyframes slideIn  { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }
+
+/* ── SCREENS ── */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  z-index: 10;
+  padding: calc(20px + var(--safe-t)) 20px calc(30px + var(--safe-b));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── BACK BUTTON ── */
+.back-btn {
+  position: fixed;
+  top: calc(16px + var(--safe-t));
+  left: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(19,19,31,0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.back-btn:hover { color: var(--blue); border-color: rgba(59,158,255,.3); }
+
+/* ══════════════════════════
+   HOME SCREEN
+══════════════════════════ */
+#homeScreen {
+  justify-content: center;
+  gap: 0;
+}
+
+.home-logo {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 28px;
+  animation: fadeUp .5s ease both;
+}
+
+.logo-svg-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.home-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 15vw, 78px);
+  letter-spacing: 4px;
+  line-height: .88;
+  text-align: center;
+  background: linear-gradient(160deg, #c8e8ff 0%, #3b9eff 40%, #1a7de8 70%, #3b9eff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite, blueGlow 3s ease infinite;
+  margin-bottom: 10px;
+}
+
+.home-tagline {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text2);
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp .5s .1s ease both;
+  animation-fill-mode: backwards;
+}
+
+.player-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(59,158,255,.1);
+  border: 1px solid rgba(59,158,255,.25);
+  color: var(--blue);
+  margin-bottom: 40px;
+  animation: fadeUp .5s .15s ease both;
+  animation-fill-mode: backwards;
+}
+
+.home-setup {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  animation: fadeUp .5s .2s ease both;
+  animation-fill-mode: backwards;
+}
+
+.setup-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.player-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 30px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  animation: popIn .3s ease both;
+}
+
+.chip-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+.chip-remove:hover { background: rgba(255,80,80,.2); color: #ff5e5e; }
+
+.add-player-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.player-input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 13px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+}
+.player-input::placeholder { color: var(--muted); }
+.player-input:focus { border-color: rgba(59,158,255,.5); }
+
+.add-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: rgba(59,158,255,.15);
+  border: 1px solid rgba(59,158,255,.3);
+  color: var(--blue);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s, transform .15s;
+  flex-shrink: 0;
+}
+.add-btn:active { transform: scale(.92); background: rgba(59,158,255,.25); }
+
+.start-btn {
+  width: 100%;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .2s, opacity .2s;
+  box-shadow: 0 6px 30px rgba(59,158,255,.3);
+  position: relative;
+  overflow: hidden;
+}
+.start-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,.08) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform .5s;
+}
+.start-btn:hover::after { transform: translateX(100%); }
+.start-btn:active { transform: scale(.97); }
+.start-btn:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
+
+/* ══════════════════════════
+   BIDDING SCREEN
+══════════════════════════ */
+#bidScreen {
+  padding-top: calc(80px + var(--safe-t));
+}
+
+.bid-header {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 20px;
+  animation: fadeUp .4s ease both;
+}
+
+.bid-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 6px;
+}
+
+.bid-player-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 2px;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.bid-sub {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+/* Category card */
+.category-card {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(145deg, rgba(59,158,255,.1) 0%, var(--card) 70%);
+  border: 1px solid rgba(59,158,255,.3);
+  border-radius: 20px;
+  padding: 22px 20px;
+  margin-bottom: 20px;
+  animation: fadeUp .4s .1s ease both;
+  animation-fill-mode: backwards;
+}
+
+.cat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--blue);
+  opacity: .7;
+  margin-bottom: 8px;
+}
+
+.cat-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.cat-hint {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+.cat-mode-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cat-mode-btn {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.cat-mode-btn.random {
+  background: transparent;
+  border: 1px dashed var(--border2);
+  color: var(--text2);
+}
+.cat-mode-btn.random:hover { border-color: rgba(59,158,255,.4); color: var(--blue); }
+.cat-mode-btn.custom {
+  background: rgba(59,158,255,.08);
+  border: 1px solid rgba(59,158,255,.2);
+  color: var(--blue);
+}
+.cat-mode-btn.custom:hover { background: rgba(59,158,255,.18); }
+
+/* Custom category modal overlay */
+.custom-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(8,8,16,.85);
+  backdrop-filter: blur(8px);
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 20px calc(20px + var(--safe-b));
+}
+.custom-modal.open { display: flex; }
+
+.custom-modal-inner {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  padding: 24px 20px;
+  animation: fadeUp .25s ease both;
+}
+
+.custom-modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.cat-input {
+  width: 100%;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+  margin-bottom: 12px;
+}
+.cat-input::placeholder { color: var(--muted); }
+.cat-input:focus { border-color: rgba(59,158,255,.4); }
+
+.custom-modal-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.cat-set-btn {
+  flex: 2;
+  padding: 13px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px;
+  letter-spacing: 2px;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.cat-set-btn:active { opacity: .8; }
+
+.cat-cancel-btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px;
+  letter-spacing: 2px;
+  color: var(--text2);
+  cursor: pointer;
+}
+.cat-cancel-btn:active { background: rgba(255,255,255,.04); }
+
+/* Bid counter */
+.bid-counter-wrap {
+  width: 100%;
+  max-width: 420px;
+  animation: fadeUp .4s .15s ease both;
+  animation-fill-mode: backwards;
+}
+
+.bid-counter-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.bid-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.counter-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, border-color .15s, transform .1s;
+  user-select: none;
+}
+.counter-btn:active { transform: scale(.88); background: rgba(59,158,255,.15); border-color: rgba(59,158,255,.3); }
+.counter-btn.plus { background: rgba(59,158,255,.1); border-color: rgba(59,158,255,.25); color: var(--blue); }
+.counter-btn.plus:active { background: rgba(59,158,255,.25); }
+
+.bid-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 90px;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--blue);
+  min-width: 120px;
+  text-align: center;
+  text-shadow: 0 0 40px rgba(59,158,255,.4);
+}
+
+.bid-statement {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 24px;
+  min-height: 22px;
+  line-height: 1.5;
+}
+.bid-statement strong { color: var(--text); }
+
+/* Bid action buttons */
+.bid-actions {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  animation: fadeUp .4s .2s ease both;
+  animation-fill-mode: backwards;
+}
+
+.pass-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .2s;
+  box-shadow: 0 5px 24px rgba(59,158,255,.25);
+}
+.pass-btn:active { transform: scale(.97); }
+
+.name-them-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: transparent;
+  border: 2px solid rgba(255,80,80,.4);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: #ff5e5e;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, transform .15s;
+}
+.name-them-btn:hover { background: rgba(255,80,80,.08); border-color: rgba(255,80,80,.6); }
+.name-them-btn:active { transform: scale(.97); }
+
+/* Bid history strip */
+.bid-history {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  animation: fadeUp .4s .25s ease both;
+  animation-fill-mode: backwards;
+}
+
+.history-pill {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text2);
+  animation: popIn .25s ease both;
+}
+.history-pill .pill-num { color: var(--blue); font-weight: 700; }
+
+/* ══════════════════════════
+   COUNTDOWN SCREEN
+══════════════════════════ */
+#countdownScreen {
+  justify-content: center;
+  align-items: center;
+}
+
+.countdown-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 200px;
+  letter-spacing: -4px;
+  line-height: 1;
+  color: var(--blue);
+  text-shadow: 0 0 60px rgba(59,158,255,.6), 0 0 120px rgba(59,158,255,.3);
+  animation: countDown 1s ease both;
+  position: absolute;
+}
+
+.countdown-sub {
+  position: absolute;
+  bottom: calc(60px + var(--safe-b));
+  font-size: 13px;
+  color: var(--text2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ══════════════════════════
+   NAMING SCREEN
+══════════════════════════ */
+#namingScreen {
+  padding-top: calc(70px + var(--safe-t));
+  gap: 0;
+}
+
+.naming-top {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 16px;
+  animation: fadeUp .4s ease both;
+}
+
+.naming-player {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.naming-challenge {
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.naming-challenge strong { color: var(--blue); }
+
+/* Timer ring */
+.timer-ring-wrap {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  animation: fadeUp .4s .1s ease both;
+  animation-fill-mode: backwards;
+}
+
+.timer-ring-outer {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+
+.timer-ring-svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  fill: none;
+  stroke: var(--border2);
+  stroke-width: 6;
+}
+
+.timer-ring-fill {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 440;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset .9s linear, stroke .5s;
+  filter: drop-shadow(0 0 6px rgba(59,158,255,.6));
+}
+
+.timer-ring-fill.urgent {
+  stroke: #ff5e5e;
+  filter: drop-shadow(0 0 6px rgba(255,80,80,.6));
+}
+
+.timer-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: timerPulse 1s ease infinite;
+}
+.timer-inner.urgent { animation: urgentPulse 0.6s ease infinite; }
+
+.timer-seconds {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 62px;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--blue);
+}
+.timer-seconds.urgent { color: #ff5e5e; }
+
+.timer-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Score display */
+.score-display {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  animation: fadeUp .4s .15s ease both;
+  animation-fill-mode: backwards;
+}
+
+.score-fraction {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.score-current {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--blue);
+  text-shadow: 0 0 30px rgba(59,158,255,.4);
+  transition: color .3s;
+  position: relative;
+}
+.score-current.success { color: #5eff8a; text-shadow: 0 0 30px rgba(94,255,138,.5); }
+
+.score-slash {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  color: var(--muted);
+}
+
+.score-target {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  color: var(--muted);
+}
+
+.score-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Tap button */
+.tap-btn {
+  width: 100%;
+  max-width: 420px;
+  padding: 26px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(59,158,255,.15), rgba(26,125,232,.1));
+  border: 2px solid rgba(59,158,255,.4);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 4px;
+  color: var(--blue);
+  cursor: pointer;
+  transition: background .1s, transform .1s, box-shadow .15s;
+  box-shadow: 0 4px 20px rgba(59,158,255,.15);
+  user-select: none;
+  -webkit-user-select: none;
+  margin-bottom: 14px;
+  animation: fadeUp .4s .2s ease both;
+  animation-fill-mode: backwards;
+  position: relative;
+  overflow: hidden;
+}
+.tap-btn:active {
+  transform: scale(.95);
+  background: linear-gradient(135deg, rgba(59,158,255,.3), rgba(26,125,232,.2));
+  box-shadow: 0 2px 10px rgba(59,158,255,.3);
+}
+
+.tap-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(59,158,255,.3);
+  transform: scale(0);
+  animation: ripple .5s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes ripple { to { transform:scale(4); opacity:0; } }
+
+.give-up-btn {
+  width: 100%;
+  max-width: 420px;
+  padding: 14px;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid rgba(255,80,80,.3);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: rgba(255,94,94,.6);
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+  animation: fadeUp .4s .25s ease both;
+  animation-fill-mode: backwards;
+}
+.give-up-btn:hover { background: rgba(255,80,80,.08); color: #ff5e5e; border-color: rgba(255,80,80,.5); }
+
+/* ══════════════════════════
+   RESULT SCREEN
+══════════════════════════ */
+#resultScreen {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.result-icon {
+  font-size: 72px;
+  margin-bottom: 16px;
+  animation: popIn .5s ease both;
+  display: block;
+  line-height: 1;
+}
+
+.result-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 15vw, 72px);
+  letter-spacing: 3px;
+  line-height: 1;
+  margin-bottom: 10px;
+  animation: popIn .5s .1s ease both;
+  animation-fill-mode: backwards;
+}
+.result-title.win  { color: #5eff8a; text-shadow: 0 0 40px rgba(94,255,138,.4); animation: popIn .5s .1s ease both, winCelebrate 1s .6s ease infinite; animation-fill-mode: backwards; }
+.result-title.lose { color: #ff5e5e; text-shadow: 0 0 40px rgba(255,80,80,.4); }
+
+.result-sub {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  animation: fadeUp .4s .2s ease both;
+  animation-fill-mode: backwards;
+}
+
+.result-detail {
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 36px;
+  line-height: 1.5;
+  max-width: 300px;
+  animation: fadeUp .4s .25s ease both;
+  animation-fill-mode: backwards;
+}
+.result-detail strong { color: var(--blue); }
+
+.drinks-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 32px;
+  animation: fadeUp .4s .3s ease both;
+  animation-fill-mode: backwards;
+}
+.drinks-card.win-card {
+  border-color: rgba(94,255,138,.25);
+  background: linear-gradient(145deg, rgba(94,255,138,.06) 0%, var(--card) 70%);
+}
+.drinks-card.lose-card {
+  border-color: rgba(255,80,80,.25);
+  background: linear-gradient(145deg, rgba(255,80,80,.06) 0%, var(--card) 70%);
+}
+
+.drinks-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.drinks-text {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.drinks-text strong { color: #ff5e5e; }
+.drinks-text .green { color: #5eff8a; }
+
+.result-btns {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeUp .4s .35s ease both;
+  animation-fill-mode: backwards;
+}
+
+.next-round-btn {
+  padding: 17px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 5px 24px rgba(59,158,255,.25);
+  transition: transform .15s;
+}
+.next-round-btn:active { transform: scale(.97); }
+
+.end-game-btn {
+  padding: 14px;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.end-game-btn:hover { border-color: var(--border2); color: var(--text); }
+
+/* Floating score toast */
+.score-toast {
+  position: fixed;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  color: var(--blue);
+  text-shadow: 0 0 20px rgba(59,158,255,.6);
+  pointer-events: none;
+  z-index: 999;
+  animation: scoreUp .6s ease forwards;
+}
+</style>
+</head>
+<body>
+
+<!-- BACK BUTTON -->
+<a href="index.html" class="back-btn">← Back</a>
+
+<!-- ══════════════════════════
+     HOME SCREEN
+══════════════════════════ -->
+<div id="homeScreen" class="screen active">
+  <div class="home-logo">
+    <div class="logo-svg-wrap">
+      <!-- SVG logo: speech bubble with lightning bold bid number -->
+      <svg width="90" height="80" viewBox="0 0 90 80" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bBlue" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#3b9eff"/>
+            <stop offset="100%" stop-color="#1a7de8"/>
+          </linearGradient>
+          <filter id="bGlow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Outer bubble glow -->
+        <ellipse cx="38" cy="34" rx="32" ry="26" fill="rgba(59,158,255,.08)"/>
+        <!-- Main speech bubble -->
+        <rect x="6" y="8" width="64" height="48" rx="12" fill="url(#bBlue)" filter="url(#bGlow)"/>
+        <!-- Bubble tail -->
+        <path d="M24 56 L18 70 L36 58 Z" fill="url(#bBlue)"/>
+        <!-- "I BET" text -->
+        <text x="38" y="27" text-anchor="middle" font-size="11" font-family="'Bebas Neue',sans-serif" fill="rgba(255,255,255,.7)" letter-spacing="2">I BET</text>
+        <!-- Big number -->
+        <text x="38" y="50" text-anchor="middle" font-size="28" font-family="'Bebas Neue',sans-serif" fill="#fff" letter-spacing="-1">YOU</text>
+        <!-- Second bubble (small, top right) -->
+        <rect x="62" y="4" width="26" height="20" rx="7" fill="rgba(59,158,255,.3)" stroke="rgba(59,158,255,.5)" stroke-width="1"/>
+        <path d="M68 24 L64 32 L72 24 Z" fill="rgba(59,158,255,.3)"/>
+        <text x="75" y="18" text-anchor="middle" font-size="12" font-family="'Bebas Neue',sans-serif" fill="rgba(255,255,255,.8)">?</text>
+      </svg>
+    </div>
+    <h1 class="home-title">I BET<br>YOU</h1>
+  </div>
+
+  <p class="home-tagline">Bluff. Bid. Name them. Drink.</p>
+  <div class="player-badge">
+    <span style="width:5px;height:5px;border-radius:50%;background:var(--blue);animation:pulse 1.5s ease infinite"></span>
+    3+ Players
+  </div>
+
+  <div class="home-setup">
+    <div class="setup-label">Who's playing?</div>
+    <div class="player-chips" id="playerChips"></div>
+    <div class="add-player-row">
+      <input type="text" class="player-input" id="playerNameInput" placeholder="Enter name..." maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="add-btn" onclick="addPlayer()">+</button>
+    </div>
+    <button class="start-btn" id="startBtn" onclick="startGame()" disabled>START GAME</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     BIDDING SCREEN
+══════════════════════════ -->
+<div id="bidScreen" class="screen">
+
+  <div class="bid-header">
+    <div class="bid-eyebrow" id="bidEyebrow">YOUR TURN TO BID</div>
+    <div class="bid-player-name" id="bidPlayerName">Player</div>
+    <div class="bid-sub" id="bidSub">Set your number, then pass the phone</div>
+  </div>
+
+  <div class="category-card" id="categoryCard">
+    <div class="cat-label">Category</div>
+    <div class="cat-name" id="catName">—</div>
+    <div class="cat-hint" id="catHint"></div>
+    <div class="cat-mode-row" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+      <button class="cat-mode-btn random" onclick="randomCategory()">🎲 Random</button>
+      <button class="cat-mode-btn custom" onclick="openCustomModal()">✏️ Custom</button>
+    </div>
+  </div>
+
+  <!-- Custom category modal -->
+  <div class="custom-modal" id="customModal">
+    <div class="custom-modal-inner">
+      <div class="custom-modal-title">Custom Category</div>
+      <input type="text" class="cat-input" id="catCustomInput" placeholder="e.g. Types of cheese..." maxlength="40" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="custom-modal-btns">
+        <button class="cat-cancel-btn" onclick="closeCustomModal()">Cancel</button>
+        <button class="cat-set-btn" onclick="setCustomCategory()">Set Category</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bid-counter-wrap">
+    <div class="bid-counter-label" id="bidCounterLabel">How many can you name?</div>
+    <div class="bid-counter">
+      <button class="counter-btn minus" onclick="adjustBid(-1)">−</button>
+      <div class="bid-number" id="bidNumber">3</div>
+      <button class="counter-btn plus" onclick="adjustBid(1)">+</button>
+    </div>
+    <div class="bid-statement" id="bidStatement"></div>
+  </div>
+
+  <div class="bid-actions">
+    <button class="pass-btn" id="passBtn" onclick="passBid()">PASS →</button>
+    <button class="name-them-btn" onclick="triggerNameThem()">NAME THEM</button>
+    <div class="bid-history" id="bidHistory"></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════
+     COUNTDOWN SCREEN
+══════════════════════════ -->
+<div id="countdownScreen" class="screen">
+  <div class="countdown-number" id="countdownNum">3</div>
+  <div class="countdown-sub">GET READY...</div>
+</div>
+
+<!-- ══════════════════════════
+     NAMING SCREEN
+══════════════════════════ -->
+<div id="namingScreen" class="screen">
+
+  <div class="naming-top">
+    <div class="naming-player" id="namingPlayer">Player</div>
+    <div class="naming-challenge" id="namingChallenge">Name <strong>7</strong> Pokémon in 60 seconds</div>
+  </div>
+
+  <div class="timer-ring-wrap">
+    <div class="timer-ring-outer">
+      <svg class="timer-ring-svg" width="160" height="160" viewBox="0 0 160 160">
+        <circle class="timer-ring-bg" cx="80" cy="80" r="70"/>
+        <circle class="timer-ring-fill" id="timerRingFill" cx="80" cy="80" r="70"/>
+      </svg>
+      <div class="timer-inner" id="timerInner">
+        <div class="timer-seconds" id="timerSeconds">60</div>
+        <div class="timer-label">seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="score-display">
+    <div class="score-fraction">
+      <div class="score-current" id="scoreCurrentEl">0</div>
+      <div class="score-slash">/</div>
+      <div class="score-target" id="scoreTargetEl">7</div>
+    </div>
+    <div class="score-label">named</div>
+  </div>
+
+  <button class="tap-btn" id="tapBtn" onclick="tapScore(event)">TAP</button>
+  <button class="give-up-btn" onclick="giveUp()">I GIVE UP</button>
+
+</div>
+
+<!-- ══════════════════════════
+     RESULT SCREEN
+══════════════════════════ -->
+<div id="resultScreen" class="screen">
+  <span class="result-icon" id="resultIcon">🏆</span>
+  <div class="result-title" id="resultTitle">WIN!</div>
+  <div class="result-sub" id="resultSub">Player nailed it!</div>
+  <div class="result-detail" id="resultDetail">Named <strong>7/7</strong> in 38 seconds</div>
+
+  <div class="drinks-card" id="drinksCard">
+    <div class="drinks-label">Drinks</div>
+    <div class="drinks-text" id="drinksText"></div>
+  </div>
+
+  <div class="result-btns">
+    <button class="next-round-btn" onclick="nextRound()">NEXT ROUND →</button>
+    <button class="end-game-btn" onclick="endGame()">END GAME</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+//  DATA
+// ═══════════════════════════════
+const CATEGORIES = [
+  { name: "Pokémon", hint: "Name any Pokémon characters" },
+  { name: "Marvel Heroes", hint: "Name any Marvel superheroes" },
+  { name: "Superheroes", hint: "Name any superheroes from any universe" },
+  { name: "Supervillains", hint: "Name any supervillains from any universe" },
+  { name: "Comics", hint: "Name any comic book titles or series" },
+  { name: "Countries in Europe", hint: "Name any European countries" },
+  { name: "Premier League Teams", hint: "Name any Premier League football clubs" },
+  { name: "Disney Movies", hint: "Name any Disney animated films" },
+  { name: "US States", hint: "Name any US states" },
+  { name: "James Bond Films", hint: "Name any James Bond movies" },
+  { name: "Beyoncé Songs", hint: "Name any Beyoncé songs" },
+  { name: "Pizza Toppings", hint: "Name any pizza toppings" },
+  { name: "Dog Breeds", hint: "Name any dog breeds" },
+  { name: "Capital Cities", hint: "Name any capital cities in the world" },
+  { name: "Friends Characters", hint: "Name any character from Friends" },
+  { name: "Football World Cup Winners", hint: "Name any country that has won the World Cup" },
+  { name: "Harry Potter Spells", hint: "Name any spell from Harry Potter" },
+  { name: "Fast Food Chains", hint: "Name any fast food restaurant chains" },
+  { name: "Taylor Swift Albums", hint: "Name any Taylor Swift albums" },
+  { name: "Olympic Sports", hint: "Name any Olympic sports" },
+  { name: "Video Games", hint: "Name any video game titles" },
+  { name: "Video Game Characters", hint: "Name any video game characters" },
+  { name: "Types of Cheese", hint: "Name any type of cheese" },
+  { name: "Famous Scientists", hint: "Name any famous scientists" },
+  { name: "Countries in Africa", hint: "Name any African countries" },
+  { name: "90s TV Shows", hint: "Name any TV show from the 90s" },
+  { name: "Types of Pasta", hint: "Name any type of pasta" },
+  { name: "NBA Teams", hint: "Name any NBA basketball teams" },
+  { name: "UK Prime Ministers", hint: "Name any UK Prime Minister" },
+  { name: "Cocktails", hint: "Name any cocktail" },
+  { name: "Roald Dahl Books", hint: "Name any book by Roald Dahl" },
+  { name: "F1 Drivers", hint: "Name any current or former F1 drivers" },
+  { name: "Football Players", hint: "Name any professional football players" },
+  { name: "Basketball Players", hint: "Name any professional basketball players" },
+  { name: "Films", hint: "Name any films" },
+  { name: "TV Shows", hint: "Name any TV shows" },
+  { name: "Boys Names", hint: "Name any boys names" },
+  { name: "Girls Names", hint: "Name any girls names" },
+  { name: "Sex Positions", hint: "Name any sex positions — if you dare" },
+  { name: "Breakfasts", hint: "Name any breakfast dishes or foods" },
+  { name: "Pop Singers", hint: "Name any pop singers or solo pop artists" },
+  { name: "Rock Bands", hint: "Name any rock bands" },
+  { name: "DJs", hint: "Name any DJs" },
+  { name: "Characters Whose Main Colour Is Blue", hint: "Name any character whose signature colour is blue" },
+  { name: "Things in a Kitchen", hint: "Name anything you'd find in a kitchen" },
+  { name: "Animated TV Shows", hint: "Name any animated TV show" },
+];
+
+// ═══════════════════════════════
+//  STATE
+// ═══════════════════════════════
+let players = [];
+let currentBidderIdx = 0;
+let currentBid = 3;
+let bidHistory = []; // {name, bid}
+let currentCategory = null;
+let isFirstBidder = true;
+
+let timerInterval = null;
+let timeLeft = 60;
+let scoreCount = 0;
+let targetCount = 0;
+let namingPlayerName = '';
+
+// ═══════════════════════════════
+//  SCREENS
+// ═══════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════
+//  HOME SCREEN
+// ═══════════════════════════════
+document.getElementById('playerNameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addPlayer();
+});
+
+function addPlayer() {
+  const input = document.getElementById('playerNameInput');
+  const name = input.value.trim();
+  if (!name || players.length >= 10) return;
+  if (players.includes(name)) { input.value = ''; return; }
+  players.push(name);
+  input.value = '';
+  renderChips();
+  updateStartBtn();
+  input.focus();
+}
+
+function renderChips() {
+  const container = document.getElementById('playerChips');
+  container.innerHTML = '';
+  players.forEach((name, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'player-chip';
+    chip.innerHTML = `<span>${name}</span><button class="chip-remove" onclick="removePlayer(${i})">✕</button>`;
+    container.appendChild(chip);
+  });
+}
+
+function removePlayer(i) {
+  players.splice(i, 1);
+  renderChips();
+  updateStartBtn();
+}
+
+function updateStartBtn() {
+  document.getElementById('startBtn').disabled = players.length < 2;
+}
+
+function startGame() {
+  if (players.length < 2) return;
+  currentBidderIdx = 0;
+  bidHistory = [];
+  pickRandomCategory();
+  enterBidScreen();
+}
+
+// ═══════════════════════════════
+//  CATEGORY
+// ═══════════════════════════════
+function pickRandomCategory() {
+  const idx = Math.floor(Math.random() * CATEGORIES.length);
+  currentCategory = { ...CATEGORIES[idx] };
+  document.getElementById('catName').textContent = currentCategory.name;
+  document.getElementById('catHint').textContent = currentCategory.hint;
+  document.getElementById('catCustomInput').value = '';
+}
+
+function randomCategory() {
+  pickRandomCategory();
+}
+
+function openCustomModal() {
+  document.getElementById('catCustomInput').value = '';
+  document.getElementById('customModal').classList.add('open');
+  setTimeout(() => document.getElementById('catCustomInput').focus(), 300);
+}
+
+function closeCustomModal() {
+  document.getElementById('customModal').classList.remove('open');
+}
+
+function setCustomCategory() {
+  const val = document.getElementById('catCustomInput').value.trim();
+  if (!val) return;
+  currentCategory = { name: val, hint: `Name anything in: ${val}` };
+  document.getElementById('catName').textContent = currentCategory.name;
+  document.getElementById('catHint').textContent = currentCategory.hint;
+  closeCustomModal();
+  updateBidStatement();
+}
+
+// Close modal on backdrop tap
+document.getElementById('customModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCustomModal();
+});
+
+document.getElementById('catCustomInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') setCustomCategory();
+  if (e.key === 'Escape') closeCustomModal();
+});
+
+// ═══════════════════════════════
+//  BIDDING
+// ═══════════════════════════════
+function enterBidScreen() {
+  const player = players[currentBidderIdx];
+  isFirstBidder = bidHistory.length === 0;
+
+  // Set minimum bid (must beat previous)
+  if (isFirstBidder) {
+    currentBid = 3;
+  } else {
+    currentBid = bidHistory[bidHistory.length - 1].bid + 1;
+  }
+
+  document.getElementById('bidPlayerName').textContent = player;
+  document.getElementById('bidEyebrow').textContent = isFirstBidder ? 'FIRST BIDDER' : 'YOUR TURN TO BID';
+  document.getElementById('bidSub').textContent = isFirstBidder
+    ? 'Set your starting number, then pass'
+    : `Beat ${bidHistory[bidHistory.length-1].name}'s ${bidHistory[bidHistory.length-1].bid}`;
+
+  document.getElementById('bidNumber').textContent = currentBid;
+  updateBidStatement();
+  renderBidHistory();
+
+  // Pass button text
+  const nextIdx = (currentBidderIdx + 1) % players.length;
+  document.getElementById('passBtn').textContent = `PASS → ${players[nextIdx]}`;
+
+  // Show/hide name them button
+  const nameThemBtn = document.querySelector('.name-them-btn');
+  nameThemBtn.style.display = isFirstBidder ? 'none' : 'block';
+
+  showScreen('bidScreen');
+}
+
+function adjustBid(delta) {
+  const minBid = isFirstBidder ? 1 : bidHistory[bidHistory.length - 1].bid + 1;
+  currentBid = Math.max(minBid, currentBid + delta);
+  document.getElementById('bidNumber').textContent = currentBid;
+  updateBidStatement();
+}
+
+function updateBidStatement() {
+  if (!currentCategory) return;
+  const player = players[currentBidderIdx];
+  document.getElementById('bidStatement').innerHTML =
+    `"I bet you I can name <strong>${currentBid} ${currentCategory.name}</strong>"`;
+}
+
+function passBid() {
+  // Record this player's bid
+  bidHistory.push({ name: players[currentBidderIdx], bid: currentBid });
+
+  // Move to next player
+  currentBidderIdx = (currentBidderIdx + 1) % players.length;
+
+  // If we've gone all the way around, they MUST name them
+  // (the next person seeing the highest bid with no option to pass back)
+  enterBidScreen();
+}
+
+function triggerNameThem() {
+  // The current player is told to name them at the PREVIOUS player's bid
+  const lastBid = bidHistory[bidHistory.length - 1];
+  namingPlayerName = lastBid.name;
+  targetCount = lastBid.bid;
+  startCountdown();
+}
+
+function renderBidHistory() {
+  const container = document.getElementById('bidHistory');
+  container.innerHTML = '';
+  bidHistory.forEach(b => {
+    const pill = document.createElement('div');
+    pill.className = 'history-pill';
+    pill.innerHTML = `${b.name}: <span class="pill-num">${b.bid}</span>`;
+    container.appendChild(pill);
+  });
+}
+
+// ═══════════════════════════════
+//  COUNTDOWN
+// ═══════════════════════════════
+function startCountdown() {
+  showScreen('countdownScreen');
+  let count = 3;
+  const el = document.getElementById('countdownNum');
+
+  function showCount() {
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.textContent = count;
+    el.style.animation = 'countDown 1s ease both';
+    if (count === 0) {
+      el.textContent = 'GO!';
+      setTimeout(startNaming, 800);
+      return;
+    }
+    count--;
+    setTimeout(showCount, 1000);
+  }
+  showCount();
+}
+
+// ═══════════════════════════════
+//  NAMING SCREEN
+// ═══════════════════════════════
+function startNaming() {
+  scoreCount = 0;
+  timeLeft = 60;
+
+  document.getElementById('namingPlayer').textContent = namingPlayerName;
+  document.getElementById('namingChallenge').innerHTML =
+    `Name <strong>${targetCount} ${currentCategory.name}</strong> in 60 seconds`;
+  document.getElementById('scoreCurrentEl').textContent = '0';
+  document.getElementById('scoreCurrentEl').classList.remove('success');
+  document.getElementById('scoreTargetEl').textContent = targetCount;
+  document.getElementById('timerSeconds').textContent = '60';
+  document.getElementById('timerSeconds').classList.remove('urgent');
+  document.getElementById('timerInner').classList.remove('urgent');
+  document.getElementById('timerRingFill').classList.remove('urgent');
+  document.getElementById('timerRingFill').style.strokeDashoffset = '0';
+
+  showScreen('namingScreen');
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  const circumference = 440;
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timerSeconds').textContent = timeLeft;
+
+    const progress = (60 - timeLeft) / 60;
+    document.getElementById('timerRingFill').style.strokeDashoffset = progress * circumference;
+
+    if (timeLeft <= 10) {
+      document.getElementById('timerSeconds').classList.add('urgent');
+      document.getElementById('timerInner').classList.add('urgent');
+      document.getElementById('timerRingFill').classList.add('urgent');
+    }
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      showResult(false);
+    }
+  }, 1000);
+}
+
+function tapScore(e) {
+  // Ripple effect
+  const btn = document.getElementById('tapBtn');
+  const ripple = document.createElement('div');
+  ripple.className = 'tap-ripple';
+  const rect = btn.getBoundingClientRect();
+  const x = (e.clientX || rect.left + rect.width/2) - rect.left;
+  const y = (e.clientY || rect.top + rect.height/2) - rect.top;
+  ripple.style.cssText = `left:${x-20}px;top:${y-20}px;width:40px;height:40px`;
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+
+  scoreCount++;
+  const el = document.getElementById('scoreCurrentEl');
+  el.textContent = scoreCount;
+
+  // Toast float
+  const toast = document.createElement('div');
+  toast.className = 'score-toast';
+  toast.textContent = `+1`;
+  toast.style.cssText = `left:${(window.innerWidth/2)-20}px;top:${window.innerHeight*0.55}px`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 700);
+
+  if (scoreCount >= targetCount) {
+    el.classList.add('success');
+    clearInterval(timerInterval);
+    setTimeout(() => showResult(true), 600);
+  }
+}
+
+function giveUp() {
+  clearInterval(timerInterval);
+  showResult(false);
+}
+
+// ═══════════════════════════════
+//  RESULT
+// ═══════════════════════════════
+function showResult(won) {
+  const timeTaken = 60 - timeLeft;
+
+  document.getElementById('resultIcon').textContent = won ? '🏆' : '😬';
+  document.getElementById('resultTitle').textContent = won ? 'NAILED IT!' : 'TIME\'S UP!';
+  document.getElementById('resultTitle').className = `result-title ${won ? 'win' : 'lose'}`;
+  document.getElementById('resultSub').textContent = won
+    ? `${namingPlayerName} wins this round!`
+    : `${namingPlayerName} couldn't name them all`;
+  document.getElementById('resultDetail').innerHTML = won
+    ? `Named <strong>${scoreCount}/${targetCount}</strong> in ${timeTaken} seconds`
+    : `Only got <strong>${scoreCount}/${targetCount}</strong> before time ran out`;
+
+  const drinksCard = document.getElementById('drinksCard');
+  const drinksText = document.getElementById('drinksText');
+
+  if (won) {
+    drinksCard.className = 'drinks-card win-card';
+    drinksText.innerHTML = `<span class="green"><strong>${namingPlayerName}</strong> wins!</span> They decide how many sips to dish out to the rest of the group. Distribute them however you like.`;
+  } else {
+    drinksCard.className = 'drinks-card lose-card';
+    drinksText.innerHTML = `<strong>${namingPlayerName}</strong> drinks <strong>half their cup</strong>. Better luck next round.`;
+  }
+
+  showScreen('resultScreen');
+}
+
+// ═══════════════════════════════
+//  NEXT ROUND / END
+// ═══════════════════════════════
+function nextRound() {
+  // Rotate starting player
+  currentBidderIdx = (currentBidderIdx + 1) % players.length;
+  bidHistory = [];
+  pickRandomCategory();
+  enterBidScreen();
+}
+
+function endGame() {
+  players = [];
+  bidHistory = [];
+  currentBidderIdx = 0;
+  renderChips();
+  updateStartBtn();
+  showScreen('homeScreen');
+}
+</script>
+</body>
+</html>
