@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="King's Cup">
+<meta name="theme-color" content="#06080f">
+<title>King's Cup</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#06080f; --surface:#0c0e18; --card-bg:#10121e; --card2:#181a28;
+  --border:#1e2035; --border2:#2a2d48;
+  --crimson:#c9222e; --crimson2:#a01820; --crimson-glow:rgba(201,34,46,0.3);
+  --ivory:#f5f0e8; --gold:#c9a84c; --gold2:#a07830;
+  --text:#e8e4dc; --text2:#8a8aa8; --muted:#44465a;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden;overscroll-behavior:none;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(201,34,46,.06) 0%,transparent 55%),
+             radial-gradient(ellipse at 20% 100%,rgba(201,168,76,.04) 0%,transparent 50%);}
+
+.screen{display:none;position:relative;z-index:1;}
+.screen.active{display:flex;flex-direction:column;align-items:center;
+  min-height:100vh;padding:calc(20px + var(--safe-t)) 16px calc(36px + var(--safe-b));}
+
+.panel{background:var(--card-bg);border:1px solid var(--border);border-radius:18px;padding:20px;width:100%;}
+.panel h2{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--crimson);margin-bottom:14px;}
+.text-inp{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;
+  padding:10px 13px;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;outline:none;transition:border-color .2s;}
+.text-inp:focus{border-color:var(--crimson);}
+.text-inp::placeholder{color:#252638;}
+.btn-primary{width:100%;padding:15px;border-radius:13px;border:none;
+  background:linear-gradient(135deg,var(--crimson),var(--crimson2));color:#fff;
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;cursor:pointer;
+  box-shadow:0 0 28px rgba(201,34,46,.25);transition:all .2s;}
+.btn-primary:active{transform:scale(0.97);}
+.btn-ghost{padding:10px 18px;border-radius:10px;border:1px solid var(--border2);background:transparent;
+  color:var(--text2);font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;}
+.s-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;display:block;}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes popIn{from{transform:scale(0.55) rotate(-6deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+@keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+@keyframes glowPulse{0%,100%{text-shadow:0 0 18px rgba(201,34,46,.4);}50%{text-shadow:0 0 40px rgba(201,34,46,.9),0 0 70px rgba(201,34,46,.25);}}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+@keyframes kingFlip{0%{transform:rotateY(90deg) scale(.85);opacity:0;}60%{transform:rotateY(-5deg) scale(1.02);opacity:1;}100%{transform:rotateY(0) scale(1);opacity:1;}}
+/* Card deal: rises up from deck position */
+@keyframes cardDeal{
+  0%  {transform:translateY(50px) rotate(5deg) scale(.88);opacity:0;}
+  65% {transform:translateY(-6px) rotate(-1deg) scale(1.02);opacity:1;}
+  100%{transform:translateY(0) rotate(0) scale(1);opacity:1;}
+}
+@keyframes ruleIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes promptFade{0%{opacity:0;}100%{opacity:1;}}
+
+.anim-fadeup{animation:fadeUp .4s ease both;}
+
+/* ── SETUP ── */
+#setup{gap:14px;max-width:480px;margin:0 auto;width:100%;}
+.kc-logo{text-align:center;padding:8px 0 4px;}
+.kc-crown{font-size:52px;display:block;animation:bounce 3s ease infinite;line-height:1;margin-bottom:10px;}
+.kc-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,14vw,76px);letter-spacing:5px;line-height:.92;
+  background:linear-gradient(160deg,#f0c4c4 0%,var(--crimson) 45%,var(--crimson2) 75%,var(--crimson) 100%);
+  background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 5s linear infinite;}
+.kc-tagline{font-size:13px;color:var(--text2);letter-spacing:1.5px;margin-top:6px;}
+
+.player-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.player-row label{font-size:15px;font-weight:500;}
+.counter{display:flex;align-items:center;gap:10px;}
+.cnt-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border2);background:transparent;
+  color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cnt-btn:active{background:var(--card2);transform:scale(.9);}
+.cnt-val{font-family:'Bebas Neue',sans-serif;font-size:26px;min-width:28px;text-align:center;color:var(--crimson);}
+.player-names{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+.player-name-wrap{position:relative;}
+.player-name-wrap .pnum{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);font-weight:600;}
+.player-name-wrap .text-inp{padding-left:30px;}
+
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.rule-chip{font-size:12px;color:var(--text2);padding:6px 10px;background:rgba(255,255,255,.02);border-radius:8px;border:1px solid var(--border);}
+.rule-chip strong{color:var(--text);}
+.rule-chip.king-chip{grid-column:span 2;border-color:rgba(201,34,46,.3);background:rgba(201,34,46,.05);}
+.rule-chip.king-chip strong{color:var(--crimson);}
+
+/* ── GAME ── */
+#game{gap:0;max-width:480px;margin:0 auto;width:100%;justify-content:flex-start;}
+
+.game-hdr{width:100%;display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+.btn-exit-game{width:30px;height:30px;border-radius:50%;border:1px solid var(--border2);background:transparent;
+  color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.btn-exit-game:active{border-color:var(--crimson);color:var(--crimson);}
+.turn-pill{background:linear-gradient(135deg,var(--crimson),var(--crimson2));color:#fff;
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;padding:5px 14px;
+  border-radius:20px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cards-left{color:var(--muted);font-size:12px;}
+.cards-left span{color:var(--text);font-weight:600;}
+
+/* Kings tracker row */
+.kings-tracker{width:100%;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.kings-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);flex-shrink:0;}
+.king-cards-row{display:flex;gap:7px;margin-left:auto;}
+
+/* Mini king card */
+.king-mini{width:34px;height:48px;border-radius:5px;border:1px solid rgba(201,34,46,.18);
+  background:var(--card2);position:relative;overflow:hidden;
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
+.king-mini .km-back{position:absolute;inset:3px;border-radius:3px;
+  border:1px solid rgba(201,34,46,.12);
+  background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(201,34,46,.04) 3px,rgba(201,34,46,.04) 6px);
+  display:flex;align-items:center;justify-content:center;font-size:9px;opacity:.3;}
+.king-mini .km-face{display:none;width:100%;height:100%;background:#fff;
+  flex-direction:column;align-items:center;padding:2px 3px;}
+.king-mini.drawn{border-color:rgba(201,34,46,.6);box-shadow:0 0 10px rgba(201,34,46,.3);
+  animation:kingFlip .4s cubic-bezier(.34,1.56,.64,1);}
+.king-mini.drawn .km-back{display:none;}
+.king-mini.drawn .km-face{display:flex;}
+.km-top{font-family:'Georgia',serif;font-size:8px;font-weight:700;line-height:1;align-self:flex-start;}
+.km-mid{flex:1;display:flex;align-items:center;justify-content:center;
+  font-family:'Georgia',serif;font-size:15px;font-weight:700;}
+.km-bot{font-family:'Georgia',serif;font-size:8px;font-weight:700;line-height:1;
+  align-self:flex-end;transform:rotate(180deg);}
+.km-red{color:#c9222e !important;}
+.km-black{color:#1a1a2e !important;}
+
+/* Mates & rules bars */
+.mates-bar{width:100%;background:rgba(100,80,180,.06);border:1px solid rgba(130,100,220,.2);
+  border-radius:12px;padding:9px 13px;margin-bottom:10px;display:none;}
+.mates-bar.visible{display:block;animation:fadeUp .3s ease;}
+.mates-bar-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#9070d0;margin-bottom:5px;}
+.mates-list{display:flex;flex-wrap:wrap;gap:6px;}
+.mate-pair{background:rgba(130,100,220,.1);border:1px solid rgba(130,100,220,.2);border-radius:20px;
+  padding:3px 10px;font-size:12px;font-weight:600;}
+.mate-pair span{color:#9070d0;}
+
+.rules-bar{width:100%;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.15);
+  border-radius:12px;padding:9px 13px;margin-bottom:10px;display:none;}
+.rules-bar.visible{display:block;animation:fadeUp .3s ease;}
+.rules-bar-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.rules-list{display:flex;flex-direction:column;gap:3px;}
+.rule-item{font-size:12px;color:var(--text2);}
+.rule-item strong{color:var(--gold);}
+
+/* Traditional playing card */
+.playing-card{
+  width:155px;height:225px;border-radius:12px;
+  position:relative;display:flex;flex-direction:column;
+  box-shadow:0 10px 40px rgba(0,0,0,.7),0 2px 8px rgba(0,0,0,.5);
+  user-select:none;
+}
+
+/* Green felt table backdrop */
+.card-table{
+  width:100%;
+  background:radial-gradient(ellipse at 50% 40%, #1a5c2a 0%, #0f3d1a 55%, #0a2d12 100%);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:inset 0 2px 16px rgba(0,0,0,.5), inset 0 0 40px rgba(0,0,0,.3);
+  padding:22px 16px 20px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  position:relative;
+}
+/* Subtle felt texture */
+.card-table::before{
+  content:'';position:absolute;inset:0;border-radius:20px;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px),
+             repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);
+}
+/* Felt inner border ring */
+.card-table::after{
+  content:'';position:absolute;inset:8px;border-radius:14px;pointer-events:none;
+  border:1px solid rgba(255,255,255,.05);
+}
+
+/* Up-next banner shown on deck face */
+.up-next-banner{
+  position:absolute;bottom:-36px;left:50%;transform:translateX(-50%);
+  white-space:nowrap;
+  background:rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;
+  padding:5px 14px;
+  font-size:12px;
+  color:rgba(255,255,255,.6);
+  letter-spacing:.5px;
+  pointer-events:none;
+}
+.up-next-banner strong{color:#fff;font-weight:700;}
+
+/* Deck / card back */
+.playing-card.is-deck{
+  background:linear-gradient(145deg,#1c0a0e,#2c1010);
+  border:1px solid rgba(201,34,46,.35);
+  cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+}
+.playing-card.is-deck:active{transform:scale(.97) translateY(3px);box-shadow:0 5px 20px rgba(0,0,0,.7);}
+.deck-inner{position:absolute;inset:10px;border-radius:7px;
+  border:1px solid rgba(201,34,46,.22);
+  background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(201,34,46,.06) 8px,rgba(201,34,46,.06) 16px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.deck-inner::before{content:'';position:absolute;inset:8px;border-radius:4px;border:1px solid rgba(201,34,46,.15);}
+.deck-crown-icon{font-size:42px;filter:drop-shadow(0 0 10px rgba(201,34,46,.45));}
+.deck-draw-label{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:rgba(201,34,46,.55);}
+
+/* Face-up card */
+.playing-card.is-face{
+  background:#faf8f4;
+  border:1px solid #c8c0b0;
+  animation:cardDeal .38s cubic-bezier(.22,.68,0,1.35) both;
+  cursor:pointer;
+}
+
+.card-corner{position:absolute;display:flex;flex-direction:column;align-items:center;line-height:1;padding:7px 8px;}
+.card-corner.tl{top:0;left:0;}
+.card-corner.br{bottom:0;right:0;transform:rotate(180deg);}
+.cv{font-family:'Georgia',serif;font-size:18px;font-weight:700;line-height:1;}
+.cs{font-size:12px;line-height:1;margin-top:1px;}
+
+.card-center-area{flex:1;display:flex;align-items:center;justify-content:center;padding:4px;}
+.card-center-sym{font-size:62px;line-height:1;}
+.card-face-svg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.card-face-svg svg{width:90px;height:130px;}
+
+.red-card .cv,.red-card .cs,.red-card .card-center-sym{color:#c9222e;}
+.black-card .cv,.black-card .cs,.black-card .card-center-sym{color:#1a1220;}
+
+/* Tap hint — light on green */
+.tap-hint{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;text-align:center;position:relative;z-index:1;}
+
+/* Suggestion label */
+.suggestion-label{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px;display:block;
+}
+
+/* Rule panel */
+.rule-panel{width:100%;background:var(--card-bg);border:1px solid var(--border2);
+  border-radius:18px;padding:18px 18px 16px;display:none;position:relative;z-index:1;}
+.rule-panel.visible{display:block;animation:ruleIn .3s ease both;}
+.rp-who{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
+.rp-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;margin-bottom:7px;line-height:1;}
+.rp-desc{font-size:16px;font-weight:600;line-height:1.4;margin-bottom:6px;}
+.rp-sub{font-size:13px;color:var(--text2);line-height:1.45;}
+
+.rp-crimson{border-color:rgba(201,34,46,.3);background:linear-gradient(160deg,rgba(201,34,46,.05),var(--card-bg));}
+.rp-crimson .rp-name{color:var(--crimson);}
+.rp-gold{border-color:rgba(201,168,76,.25);background:linear-gradient(160deg,rgba(201,168,76,.04),var(--card-bg));}
+.rp-gold .rp-name{color:var(--gold);}
+.rp-green{border-color:rgba(80,200,120,.2);background:linear-gradient(160deg,rgba(80,200,120,.04),var(--card-bg));}
+.rp-green .rp-name{color:#50c878;}
+.rp-blue{border-color:rgba(80,160,255,.2);background:linear-gradient(160deg,rgba(80,160,255,.04),var(--card-bg));}
+.rp-blue .rp-name{color:#5ea8ff;}
+.rp-purple{border-color:rgba(130,100,220,.25);background:linear-gradient(160deg,rgba(130,100,220,.05),var(--card-bg));}
+.rp-purple .rp-name{color:#9070d0;}
+
+/* Action panel */
+.action-panel{width:100%;display:none;}
+.action-panel.visible{display:block;animation:fadeUp .25s ease;}
+.player-picker{display:flex;flex-wrap:wrap;gap:8px;}
+.pick-btn{padding:9px 16px;border-radius:20px;border:1px solid var(--border2);background:var(--card2);
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.pick-btn:active{transform:scale(.95);}
+.pick-btn.selected{background:var(--crimson);border-color:var(--crimson);color:#fff;}
+.pick-btn.mate-sel{background:#6040b0;border-color:#6040b0;color:#fff;}
+
+.nhie-box{background:var(--card2);border:1px solid var(--border2);border-radius:13px;
+  padding:13px 15px;display:flex;align-items:center;gap:12px;}
+.nhie-text{flex:1;font-size:15px;font-weight:500;line-height:1.4;}
+.nhie-refresh{width:36px;height:36px;border-radius:9px;border:1px solid var(--border2);background:transparent;
+  color:var(--text2);font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.nhie-refresh:active{transform:rotate(180deg);}
+
+.cat-box{background:var(--card2);border:1px solid var(--border2);border-radius:13px;padding:13px 15px;}
+.cat-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.cat-val{font-size:16px;font-weight:600;}
+
+.rule-input-wrap{display:flex;gap:8px;}
+.rule-input-wrap .text-inp{flex:1;}
+.btn-confirm{padding:10px 16px;border-radius:10px;border:none;background:var(--gold);color:#1a1200;
+  font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.btn-confirm:active{transform:scale(.96);}
+
+/* Draw next prompt shown below drawn card */
+.draw-next-hint{width:100%;text-align:center;padding:6px 0 0;
+  font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;
+  display:none;animation:promptFade .5s .5s ease both;opacity:0;animation-fill-mode:forwards;}
+.draw-next-hint.visible{display:block;}
+
+/* End modals */
+.kc-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;
+  align-items:center;justify-content:center;padding:24px;}
+.kc-modal-bg.open{display:flex;animation:fadeIn .3s ease;}
+.kc-modal{background:var(--card-bg);border:2px solid rgba(201,34,46,.5);border-radius:22px;
+  padding:28px 22px;width:100%;max-width:400px;text-align:center;
+  box-shadow:0 0 80px rgba(201,34,46,.2);animation:popIn .45s cubic-bezier(.34,1.56,.64,1);}
+.kc-modal-crown{font-size:58px;display:block;margin-bottom:8px;animation:bounce 1.5s ease infinite;}
+.kc-modal-title{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:3px;
+  color:var(--crimson);margin-bottom:6px;animation:glowPulse 2s ease infinite;}
+.kc-modal-sub{color:var(--text2);font-size:14px;line-height:1.55;margin-bottom:16px;}
+.kc-modal-loser{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--text);margin-bottom:22px;}
+.kc-modal-btns{display:flex;flex-direction:column;gap:10px;}
+.btn-play-again{width:100%;padding:14px;border-radius:13px;border:2px solid var(--crimson);background:transparent;
+  color:var(--crimson);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;}
+.btn-play-again:active{background:var(--crimson);color:#fff;}
+.btn-home-modal{width:100%;padding:11px;border-radius:13px;border:1px solid var(--border2);background:transparent;
+  color:var(--text2);font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;}
+
+.exit-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;
+  align-items:center;justify-content:center;padding:24px;}
+.exit-modal-bg.open{display:flex;animation:fadeIn .2s ease;}
+.exit-modal{background:var(--card-bg);border:1px solid var(--border2);border-radius:18px;
+  padding:24px 20px;width:100%;max-width:340px;text-align:center;}
+.exit-modal .em-icon{font-size:34px;display:block;margin-bottom:10px;}
+.exit-modal h3{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:6px;}
+.exit-modal p{color:var(--text2);font-size:14px;line-height:1.5;margin-bottom:18px;}
+.exit-modal-btns{display:flex;gap:10px;}
+.btn-exit-cancel{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border2);background:transparent;
+  color:var(--text2);font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;}
+.btn-exit-confirm{flex:1;padding:11px;border-radius:10px;border:none;background:var(--crimson);
+  color:#fff;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP ═══ -->
+<div id="setup" class="screen active">
+  <div class="kc-logo anim-fadeup">
+    <span class="kc-crown">👑</span>
+    <div class="kc-title">KING'S<br>CUP</div>
+    <div class="kc-tagline">Draw a card. Face the rules.</div>
+  </div>
+
+  <div class="panel anim-fadeup" style="animation-delay:.1s">
+    <h2>👥 Players</h2>
+    <div class="player-row">
+      <label>How many players?</label>
+      <div class="counter">
+        <button class="cnt-btn" id="decP">−</button>
+        <div class="cnt-val" id="pCount">2</div>
+        <button class="cnt-btn" id="incP">+</button>
+      </div>
+    </div>
+    <div class="player-names" id="playerNames"></div>
+  </div>
+
+  <div class="panel anim-fadeup" style="animation-delay:.15s">
+    <h2>📋 Card Rules</h2>
+    <div class="rules-grid">
+      <div class="rule-chip"><strong>A</strong> — Waterfall</div>
+      <div class="rule-chip"><strong>2</strong> — You</div>
+      <div class="rule-chip"><strong>3</strong> — Me</div>
+      <div class="rule-chip"><strong>4</strong> — Girls drink</div>
+      <div class="rule-chip"><strong>5</strong> — Never Have I Ever</div>
+      <div class="rule-chip"><strong>6</strong> — Guys drink</div>
+      <div class="rule-chip"><strong>7</strong> — Heaven</div>
+      <div class="rule-chip"><strong>8</strong> — Pick a Mate</div>
+      <div class="rule-chip"><strong>9</strong> — Bust a Rhyme</div>
+      <div class="rule-chip"><strong>10</strong> — Categories</div>
+      <div class="rule-chip"><strong>J</strong> — Make a Rule</div>
+      <div class="rule-chip"><strong>Q</strong> — All Hail the Queen</div>
+      <div class="rule-chip king-chip"><strong>K</strong> — Pour into the King's Cup 👑</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:8px;width:100%;animation:fadeUp .4s .2s ease both;opacity:0;animation-fill-mode:forwards;">
+    <button class="btn-primary" id="startBtn">DEAL THE CARDS →</button>
+    <button class="btn-ghost" style="width:100%;text-align:center;" onclick="window.location.href='ryans-party-pack.html'">← Back to Party Pack</button>
+  </div>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div id="game" class="screen">
+
+  <div class="game-hdr" style="width:100%">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn-exit-game" id="exitGameBtn">✕</button>
+      <div class="turn-pill" id="turnPill">Player 1</div>
+    </div>
+    <div class="cards-left">Cards: <span id="cardsLeft">52</span></div>
+  </div>
+
+  <!-- King tracker: 4 mini king cards -->
+  <div class="kings-tracker" style="width:100%">
+    <span class="kings-label">Kings drawn</span>
+    <div class="king-cards-row">
+      <!-- ♥ red -->
+      <div class="king-mini" id="kc0">
+        <div class="km-back">♛</div>
+        <div class="km-face">
+          <div class="km-top km-red">K<br><span>♥</span></div>
+          <div class="km-mid km-red">K</div>
+          <div class="km-bot km-red">K<br><span>♥</span></div>
+        </div>
+      </div>
+      <!-- ♦ red -->
+      <div class="king-mini" id="kc1">
+        <div class="km-back">♛</div>
+        <div class="km-face">
+          <div class="km-top km-red">K<br><span>♦</span></div>
+          <div class="km-mid km-red">K</div>
+          <div class="km-bot km-red">K<br><span>♦</span></div>
+        </div>
+      </div>
+      <!-- ♠ black -->
+      <div class="king-mini" id="kc2">
+        <div class="km-back">♛</div>
+        <div class="km-face">
+          <div class="km-top km-black">K<br><span>♠</span></div>
+          <div class="km-mid km-black">K</div>
+          <div class="km-bot km-black">K<br><span>♠</span></div>
+        </div>
+      </div>
+      <!-- ♣ black -->
+      <div class="king-mini" id="kc3">
+        <div class="km-back">♛</div>
+        <div class="km-face">
+          <div class="km-top km-black">K<br><span>♣</span></div>
+          <div class="km-mid km-black">K</div>
+          <div class="km-bot km-black">K<br><span>♣</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mates bar -->
+  <div class="mates-bar" id="matesBar">
+    <div class="mates-bar-title">💜 Active Mates</div>
+    <div class="mates-list" id="matesList"></div>
+  </div>
+
+  <!-- Rules bar -->
+  <div class="rules-bar" id="rulesBar">
+    <div class="rules-bar-title">📋 Active Rules</div>
+    <div class="rules-list" id="rulesList"></div>
+  </div>
+
+  <!-- Card table -->
+  <div class="card-table" style="width:100%">
+
+    <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+      <div class="playing-card is-deck" id="playingCard" onclick="handleCardTap()">
+        <div class="deck-inner">
+          <span class="deck-crown-icon">👑</span>
+          <span class="deck-draw-label">DRAW</span>
+        </div>
+      </div>
+      <div class="up-next-banner" id="upNextBanner">Up next: <strong id="upNextName">Player 1</strong></div>
+    </div>
+
+    <div class="tap-hint" id="tapHint">Tap to draw</div>
+
+    <div class="rule-panel" id="rulePanel"></div>
+    <div class="action-panel" id="actionPanel"></div>
+    <div class="draw-next-hint" id="drawNextHint">Tap card to draw next</div>
+
+  </div>
+</div>
+
+<!-- King's Cup End Modal -->
+<div class="kc-modal-bg" id="kcModal">
+  <div class="kc-modal">
+    <span class="kc-modal-crown">👑</span>
+    <div class="kc-modal-title">KING'S CUP!</div>
+    <div class="kc-modal-sub">The 4th King has been drawn.<br>It's time to face the music.</div>
+    <div class="kc-modal-loser" id="kcModalLoser">PLAYER DRINKS!</div>
+    <div class="kc-modal-btns">
+      <button class="btn-play-again" onclick="restartGame()">PLAY AGAIN</button>
+      <button class="btn-home-modal" onclick="window.location.href='ryans-party-pack.html'">← Back to Party Pack</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exit Modal -->
+<div class="exit-modal-bg" id="exitModal">
+  <div class="exit-modal">
+    <span class="em-icon">🚪</span>
+    <h3>QUIT THE GAME?</h3>
+    <p>You'll lose all progress.<br>Are you sure?</p>
+    <div class="exit-modal-btns">
+      <button class="btn-exit-cancel" id="exitCancelBtn">KEEP PLAYING</button>
+      <button class="btn-exit-confirm" id="exitConfirmBtn">QUIT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const NHIE=[
+  "Never have I ever sent a text to the wrong person",
+  "Never have I ever pretended to be asleep to avoid a conversation",
+  "Never have I ever stalked an ex on social media",
+  "Never have I ever lied about my age",
+  "Never have I ever kissed someone and forgotten their name",
+  "Never have I ever called someone the wrong name during a date",
+  "Never have I ever drunk texted someone embarrassing",
+  "Never have I ever pulled a sickie when I wasn't sick",
+  "Never have I ever walked into a glass door",
+  "Never have I ever cried at a Disney film",
+  "Never have I ever been kicked out of a bar or club",
+  "Never have I ever peed in a pool",
+  "Never have I ever eaten food off the floor",
+  "Never have I ever ghosted someone",
+  "Never have I ever lied on my CV",
+  "Never have I ever been in a relationship someone my friends hated",
+  "Never have I ever slid into someone's DMs",
+  "Never have I ever made a fake excuse to leave a party early",
+  "Never have I ever bought something and lied about the price",
+  "Never have I ever blamed a smell on someone else",
+  "Never have I ever woken up with no idea where I was",
+  "Never have I ever matched with someone and then never messaged",
+  "Never have I ever said I'm 5 minutes away when I hadn't left",
+  "Never have I ever worn someone else's clothes without asking",
+  "Never have I ever googled a date before meeting them",
+  "Never have I ever gone through someone else's phone",
+  "Never have I ever re-gifted a present",
+  "Never have I ever had a crush on a friend's partner",
+  "Never have I ever laughed at a really inappropriate moment",
+  "Never have I ever fancied someone I probably shouldn't have",
+];
+const CATEGORIES=[
+  "Types of alcohol","Countries in Europe","Premier League teams",
+  "Things in a bathroom","Brands of trainers","Fast food chains",
+  "Superhero movies","Things at a wedding","Types of pasta",
+  "Animals that can kill you","Netflix shows","Things in a handbag",
+  "Excuses for being late","Things you say when drunk","Football clubs",
+  "Famous Ryans","Things in IKEA","Cocktail names",
+];
+
+// ── DECK ──
+function buildDeck(){
+  const D=[];
+  for(const s of['H','D','S','C'])
+    for(const v of['A','2','3','4','5','6','7','8','9','10','J','Q','K'])
+      D.push({v,s,sym:{H:'♥',D:'♦',S:'♠',C:'♣'}[s]});
+  for(let i=D.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[D[i],D[j]]=[D[j],D[i]];}
+  return D;
+}
+
+// ── STATE ──
+let players=[],currentIdx=0,deck=[],kingsDrawn=0;
+let mates={},customRules=[],lastNhieIdx=-1;
+let needAction=false; // must complete action before tapping advances
+let readyToAdvance=false; // rule shown, tap drawn card to draw next
+let pendingMate=null; // {player, chosen} — staged, committed on next draw
+let gameStarted=false;
+let numPlayers=2;
+
+// ── SETUP ──
+function renderInputs(){
+  const c=document.getElementById('playerNames');c.innerHTML='';
+  for(let i=0;i<numPlayers;i++){
+    const w=document.createElement('div');w.className='player-name-wrap';
+    w.innerHTML=`<span class="pnum">${i+1}</span><input class="text-inp" placeholder="Player ${i+1}" maxlength="20">`;
+    c.appendChild(w);
+  }
+}
+document.getElementById('decP').onclick=()=>{if(numPlayers>2){numPlayers--;document.getElementById('pCount').textContent=numPlayers;renderInputs();}};
+document.getElementById('incP').onclick=()=>{if(numPlayers<10){numPlayers++;document.getElementById('pCount').textContent=numPlayers;renderInputs();}};
+renderInputs();
+document.getElementById('startBtn').onclick=()=>{
+  players=[];
+  document.querySelectorAll('#playerNames .text-inp').forEach((el,i)=>players.push(el.value.trim()||'Player '+(i+1)));
+  startGame();
+};
+
+// ── START ──
+function startGame(){
+  deck=buildDeck();currentIdx=0;kingsDrawn=0;mates={};customRules=[];
+  needAction=false;readyToAdvance=false;pendingMate=null;gameStarted=false;
+  for(let i=0;i<4;i++)document.getElementById('kc'+i).classList.remove('drawn');
+  document.getElementById('matesBar').classList.remove('visible');
+  document.getElementById('rulesBar').classList.remove('visible');
+  resetToDeck();
+  updateHdr();
+  showScreen('game');
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function updateHdr(){
+  document.getElementById('turnPill').textContent=players[currentIdx];
+  document.getElementById('cardsLeft').textContent=deck.length;
+  // Up-next shows the CURRENT player (about to draw)
+  const un=document.getElementById('upNextName');
+  if(un) un.textContent=players[currentIdx];
+}
+function showUpNext(){
+  const b=document.getElementById('upNextBanner');
+  if(b) b.style.display='block';
+}
+function hideUpNext(){
+  const b=document.getElementById('upNextBanner');
+  if(b) b.style.display='none';
+}
+
+function resetToDeck(){
+  const pc=document.getElementById('playingCard');
+  pc.className='playing-card is-deck';
+  pc.innerHTML=`<div class="deck-inner"><span class="deck-crown-icon">👑</span><span class="deck-draw-label">DRAW</span></div>`;
+  document.getElementById('tapHint').textContent='Tap to draw';
+  document.getElementById('tapHint').style.opacity='1';
+  showUpNext();
+  const un=document.getElementById('upNextName');
+  if(un) un.textContent=players[currentIdx];
+  document.getElementById('rulePanel').classList.remove('visible');
+  document.getElementById('rulePanel').innerHTML='';
+  document.getElementById('actionPanel').classList.remove('visible');
+  document.getElementById('actionPanel').innerHTML='';
+  document.getElementById('drawNextHint').classList.remove('visible');
+  needAction=false;readyToAdvance=false;pendingMate=null;
+}
+
+// ── SINGLE TAP HANDLER ──
+function handleCardTap(){
+  if(needAction) return; // waiting for player selection or rule input
+  if(readyToAdvance){
+    if(!gameStarted){
+      // First card ever: show deck briefly before drawing
+      gameStarted=true;
+      currentIdx=(currentIdx+1)%players.length;
+      updateHdr();
+      resetToDeck();
+      window.scrollTo(0,0);
+    } else {
+      // Commit any pending mate — directional, additive
+      if(pendingMate){
+        const{player,chosen}=pendingMate;
+        // Directional: player drinks → chosen also drinks (one way)
+        // This is additive — if Sam later draws 8 and picks Ryan, that's a separate direction
+        mates[player]=chosen;
+        updateMatesBar();
+        pendingMate=null;
+      }
+      // Advance player and draw immediately — no intermediate deck screen
+      currentIdx=(currentIdx+1)%players.length;
+      updateHdr();
+      hideUpNext();
+      // Clear rule/action panels but keep card face visible briefly
+      document.getElementById('rulePanel').classList.remove('visible');
+      document.getElementById('rulePanel').innerHTML='';
+      document.getElementById('actionPanel').classList.remove('visible');
+      document.getElementById('actionPanel').innerHTML='';
+      document.getElementById('drawNextHint').classList.remove('visible');
+      needAction=false;readyToAdvance=false;pendingMate=null;
+      window.scrollTo(0,0);
+      if(deck.length===0)return;
+      drawCard();
+    }
+    return;
+  }
+  // First draw of the game
+  if(deck.length===0)return;
+  gameStarted=true;
+  drawCard();
+}
+
+// ── FACE CARD SVGs ──
+function getFaceCardSVG(val, suit){
+  const isRed = suit==='H'||suit==='D';
+  const c = isRed ? '#c9222e' : '#1a1220';
+  const sym = {H:'♥',D:'♦',S:'♠',C:'♣'}[suit];
+
+  if(val==='A'){
+    // Large elegant Ace — big suit symbol
+    return `<svg viewBox="0 0 90 130" xmlns="http://www.w3.org/2000/svg">
+      <text x="45" y="88" text-anchor="middle" font-size="72" fill="${c}" font-family="Georgia,serif">${sym}</text>
+    </svg>`;
+  }
+  if(val==='J'){
+    return `<svg viewBox="0 0 90 130" xmlns="http://www.w3.org/2000/svg">
+      <!-- Body -->
+      <rect x="28" y="42" width="34" height="52" rx="3" fill="${c}" opacity=".12"/>
+      <!-- Head -->
+      <ellipse cx="45" cy="36" rx="13" ry="13" fill="#f5e8d0" stroke="${c}" stroke-width="1.5"/>
+      <!-- Crown/hat -->
+      <rect x="32" y="20" width="26" height="8" rx="2" fill="${c}"/>
+      <rect x="36" y="14" width="18" height="9" rx="2" fill="${c}"/>
+      <rect x="30" y="27" width="30" height="3" rx="1" fill="${c}"/>
+      <!-- Face details -->
+      <circle cx="40" cy="36" r="1.5" fill="${c}"/>
+      <circle cx="50" cy="36" r="1.5" fill="${c}"/>
+      <path d="M40 42 Q45 45 50 42" stroke="${c}" stroke-width="1.5" fill="none"/>
+      <!-- Body details -->
+      <rect x="31" y="44" width="28" height="2" rx="1" fill="${c}" opacity=".4"/>
+      <!-- Sword -->
+      <line x1="55" y1="50" x2="65" y2="88" stroke="${c}" stroke-width="2" opacity=".7"/>
+      <line x1="52" y1="55" x2="58" y2="55" stroke="${c}" stroke-width="2" opacity=".7"/>
+      <!-- Suit bottom -->
+      <text x="45" y="120" text-anchor="middle" font-size="14" fill="${c}" font-family="Georgia,serif">${sym}</text>
+    </svg>`;
+  }
+  if(val==='Q'){
+    return `<svg viewBox="0 0 90 130" xmlns="http://www.w3.org/2000/svg">
+      <!-- Dress -->
+      <path d="M22 94 Q30 60 45 56 Q60 60 68 94 Z" fill="${c}" opacity=".15"/>
+      <path d="M28 94 Q34 64 45 60 Q56 64 62 94 Z" fill="${c}" opacity=".2"/>
+      <!-- Head -->
+      <ellipse cx="45" cy="34" rx="13" ry="13" fill="#f5e8d0" stroke="${c}" stroke-width="1.5"/>
+      <!-- Crown -->
+      <path d="M32 22 L36 30 L45 24 L54 30 L58 22 L56 28 H34 Z" fill="${c}"/>
+      <circle cx="45" cy="22" r="2.5" fill="${isRed?'#ffd700':'#888'}"/>
+      <circle cx="35" cy="25" r="2" fill="${isRed?'#ffd700':'#888'}"/>
+      <circle cx="55" cy="25" r="2" fill="${isRed?'#ffd700':'#888'}"/>
+      <!-- Face -->
+      <circle cx="40" cy="34" r="1.5" fill="${c}"/>
+      <circle cx="50" cy="34" r="1.5" fill="${c}"/>
+      <path d="M40 40 Q45 43 50 40" stroke="${c}" stroke-width="1.5" fill="none"/>
+      <!-- Sceptre -->
+      <line x1="60" y1="48" x2="66" y2="86" stroke="${c}" stroke-width="2" opacity=".7"/>
+      <circle cx="63" cy="46" r="4" fill="${c}" opacity=".7"/>
+      <!-- Suit bottom -->
+      <text x="45" y="120" text-anchor="middle" font-size="14" fill="${c}" font-family="Georgia,serif">${sym}</text>
+    </svg>`;
+  }
+  if(val==='K'){
+    return `<svg viewBox="0 0 90 130" xmlns="http://www.w3.org/2000/svg">
+      <!-- Robe -->
+      <path d="M18 95 Q28 55 45 50 Q62 55 72 95 Z" fill="${c}" opacity=".12"/>
+      <path d="M24 95 Q32 60 45 56 Q58 60 66 95 Z" fill="${c}" opacity=".18"/>
+      <!-- Head -->
+      <ellipse cx="45" cy="33" rx="14" ry="14" fill="#f5e8d0" stroke="${c}" stroke-width="1.5"/>
+      <!-- Crown -->
+      <rect x="31" y="22" width="28" height="5" rx="1" fill="${c}"/>
+      <path d="M31 22 L35 14 L39 20 L45 12 L51 20 L55 14 L59 22 Z" fill="${c}"/>
+      <circle cx="45" cy="12" r="2.5" fill="${isRed?'#ffd700':'#aaa'}"/>
+      <circle cx="35" cy="15" r="2" fill="${isRed?'#ffd700':'#aaa'}"/>
+      <circle cx="55" cy="15" r="2" fill="${isRed?'#ffd700':'#aaa'}"/>
+      <!-- Beard / face -->
+      <ellipse cx="45" cy="40" rx="9" ry="5" fill="#d4c4a0" opacity=".6"/>
+      <circle cx="40" cy="32" r="1.5" fill="${c}"/>
+      <circle cx="50" cy="32" r="1.5" fill="${c}"/>
+      <!-- Sceptre -->
+      <line x1="62" y1="46" x2="68" y2="88" stroke="${c}" stroke-width="2.5" opacity=".8"/>
+      <rect x="58" y="42" width="8" height="6" rx="2" fill="${c}" opacity=".8"/>
+      <!-- Orb -->
+      <circle cx="26" cy="68" r="8" fill="${c}" opacity=".15" stroke="${c}" stroke-width="1.5"/>
+      <text x="26" y="72" text-anchor="middle" font-size="8" fill="${c}">${sym}</text>
+      <!-- Suit bottom -->
+      <text x="45" y="120" text-anchor="middle" font-size="14" fill="${c}" font-family="Georgia,serif">${sym}</text>
+    </svg>`;
+  }
+}
+
+// ── DRAW ──
+function drawCard(){
+  const card=deck.pop();
+  updateHdr();
+
+  const isRed=card.s==='H'||card.s==='D';
+  const colorCls=isRed?'red-card':'black-card';
+  const isFace=['A','J','Q','K'].includes(card.v);
+
+  const pc=document.getElementById('playingCard');
+  pc.className='playing-card is-face '+colorCls;
+
+  let centerHTML;
+  if(isFace){
+    const svg=getFaceCardSVG(card.v, card.s);
+    centerHTML=`<div class="card-center-area"><div class="card-face-svg">${svg}</div></div>`;
+  } else {
+    centerHTML=`<div class="card-center-area"><div class="card-center-sym">${card.sym}</div></div>`;
+  }
+
+  pc.innerHTML=`
+    <div class="card-corner tl"><span class="cv">${card.v}</span><span class="cs">${card.sym}</span></div>
+    ${centerHTML}
+    <div class="card-corner br"><span class="cv">${card.v}</span><span class="cs">${card.sym}</span></div>`;
+
+  // Re-trigger deal animation
+  pc.style.animation='none';
+  pc.offsetHeight;
+  pc.style.animation='';
+
+  document.getElementById('tapHint').style.opacity='0';
+  hideUpNext();
+  applyRule(card);
+}
+
+// ── RULES ──
+const CARD_NAMES={A:'ACE',2:'TWO',3:'THREE',4:'FOUR',5:'FIVE',6:'SIX',7:'SEVEN',8:'EIGHT',9:'NINE',10:'TEN',J:'JACK',Q:'QUEEN',K:'KING'};
+const CARD_COLORS={A:'rp-blue',2:'rp-crimson',3:'rp-crimson',4:'rp-purple',5:'rp-green',6:'rp-blue',7:'rp-gold',8:'rp-purple',9:'rp-gold',10:'rp-blue',J:'rp-gold',Q:'rp-purple',K:'rp-crimson'};
+
+function applyRule(card){
+  const player=players[currentIdx];
+  const rp=document.getElementById('rulePanel');
+  const ap=document.getElementById('actionPanel');
+  ap.innerHTML='';ap.classList.remove('visible');
+
+  rp.className='rule-panel visible '+(CARD_COLORS[card.v]||'rp-gold');
+
+  const head=`<div class="rp-who">${player.toUpperCase()}</div><div class="rp-name">${CARD_NAMES[card.v]||card.v}</div>`;
+
+  const mateNote=mates[player]?` ${mates[player]} is your mate — they drink too! 💜`:'';
+
+  switch(card.v){
+    case'A':
+      rp.innerHTML=head+`<div class="rp-desc">WATERFALL!</div><div class="rp-sub">${player} starts drinking — everyone joins in. You can only stop once the player to your left stops. ${player} can stop whenever they like.</div>`;
+      doneRule();break;
+    case'2':
+      rp.innerHTML=head+`<div class="rp-desc">YOU — Pick someone to drink!</div><div class="rp-sub" id="sub2">${player}, tap a player below.</div>`;
+      needAction=true;
+      buildPicker(ap,player,false,(chosen)=>{
+        document.getElementById('sub2').textContent=`${player} picks ${chosen}. ${chosen} drinks! 🍺${mates[player]?' '+mates[player]+' also drinks (mate)! 💜':''}`;
+        needAction=false;doneRule();
+      });break;
+    case'3':
+      rp.innerHTML=head+`<div class="rp-desc">ME — You drink!</div><div class="rp-sub">${player} takes a drink.${mateNote}</div>`;
+      doneRule();break;
+    case'4':
+      rp.innerHTML=head+`<div class="rp-desc">WHORES — All girls drink!</div><div class="rp-sub">Every woman in the group takes a drink.</div>`;
+      doneRule();break;
+    case'5':{
+      const q=getNhie();
+      rp.innerHTML=head+`<div class="rp-desc">NEVER HAVE I EVER...</div><div class="rp-sub">Anyone who HAS done it drinks!</div>`;
+      const box=document.createElement('div');box.className='nhie-box';
+      box.innerHTML=`<span class="suggestion-label">💡 Suggestion if you're stuck</span><div style="display:flex;align-items:center;gap:12px"><div class="nhie-text">${q}</div><button class="nhie-refresh" onclick="rotateNhie(this)">🔄</button></div>`;
+      ap.appendChild(box);ap.classList.add('visible');
+      doneRule();break;}
+    case'6':
+      rp.innerHTML=head+`<div class="rp-desc">DICKS — All guys drink!</div><div class="rp-sub">Every man in the group takes a drink.</div>`;
+      doneRule();break;
+    case'7':
+      rp.innerHTML=head+`<div class="rp-desc">HEAVEN — Hands up!</div><div class="rp-sub">Everyone raise your hand right now. Last person up drinks!</div>`;
+      doneRule();break;
+    case'8':
+      rp.innerHTML=head+`<div class="rp-desc">PICK A MATE!</div><div class="rp-sub" id="sub8">${player}, choose your mate — they drink every time you do for the rest of the game.</div>`;
+      needAction=true;
+      buildPicker(ap,player,true,(chosen)=>{
+        // Stage — don't commit until next card drawn so player can change mind
+        pendingMate={player,chosen};
+        const s=document.getElementById('sub8');
+        if(s)s.textContent=`${player} picked ${chosen} as their mate. 💜 Tap the card to confirm and continue.`;
+        needAction=false;doneRule();
+      });break;
+    case'9':
+      rp.innerHTML=head+`<div class="rp-desc">BUST A RHYME!</div><div class="rp-sub">${player} says a word. Each player must rhyme — first to fail or repeat drinks!</div>`;
+      doneRule();break;
+    case'10':{
+      const cat=CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)];
+      rp.innerHTML=head+`<div class="rp-desc">CATEGORIES!</div><div class="rp-sub">${player} starts. Anyone who repeats or can't think of something drinks!</div>`;
+      const cb=document.createElement('div');cb.className='cat-box';
+      cb.innerHTML=`<span class="suggestion-label">💡 Suggestion if you're stuck</span><div class="cat-label">Category</div><div class="cat-val">${cat}</div>`;
+      ap.appendChild(cb);ap.classList.add('visible');
+      doneRule();break;}
+    case'J':
+      rp.innerHTML=head+`<div class="rp-desc">MAKE A RULE!</div><div class="rp-sub" id="subJ">${player} invents a rule for the rest of the game. Break it and you drink.</div>`;
+      needAction=true;
+      buildRuleInput(ap,player);break;
+    case'Q':
+      rp.innerHTML=head+`<div class="rp-desc">ALL HAIL THE QUEEN!</div><div class="rp-sub">Everyone drinks! 👑🍺</div>`;
+      doneRule();break;
+    case'K':
+      doKing(player,head);break;
+  }
+}
+
+function doneRule(){
+  readyToAdvance=true;
+  const hint=document.getElementById('drawNextHint');
+  hint.classList.add('visible');
+}
+
+// ── KING ──
+function doKing(player,head){
+  kingsDrawn++;
+  document.getElementById('kc'+(kingsDrawn-1)).classList.add('drawn');
+  const rp=document.getElementById('rulePanel');
+  if(kingsDrawn<4){
+    const rem=4-kingsDrawn;
+    rp.innerHTML=head+`<div class="rp-desc">POUR INTO THE KING'S CUP! 👑</div>
+      <div class="rp-sub">${player} pours some of their drink into the King's Cup. ${rem} king${rem===1?'':'s'} left until someone drinks the lot...</div>`;
+    doneRule();
+  } else {
+    rp.innerHTML=head+`<div class="rp-desc">THE 4TH KING! 👑</div>
+      <div class="rp-sub">${player} drew the final King. The King's Cup must be drunk...</div>`;
+    setTimeout(()=>{
+      document.getElementById('kcModalLoser').textContent=player.toUpperCase()+' DRINKS THE CUP!';
+      document.getElementById('kcModal').classList.add('open');
+    },1400);
+  }
+}
+
+// ── ACTION BUILDERS ──
+function buildPicker(container,currentPlayer,forMate,onPick){
+  const wrap=document.createElement('div');wrap.className='player-picker';
+  players.forEach(p=>{
+    if(p===currentPlayer)return;
+    const btn=document.createElement('button');btn.className='pick-btn';btn.textContent=p;
+    btn.onclick=()=>{
+      wrap.querySelectorAll('.pick-btn').forEach(b=>b.classList.remove('selected','mate-sel'));
+      btn.classList.add(forMate?'mate-sel':'selected');
+      onPick(p);
+    };
+    wrap.appendChild(btn);
+  });
+  container.appendChild(wrap);container.classList.add('visible');
+}
+
+function buildRuleInput(container,player){
+  const wrap=document.createElement('div');wrap.className='rule-input-wrap';
+  const safePlayer=player.replace(/'/g,"\\'");
+  wrap.innerHTML=`<input class="text-inp" id="newRuleInp" placeholder="Type the rule..." maxlength="80">
+    <button class="btn-confirm" onclick="saveRule('${safePlayer}')">ADD</button>`;
+  container.appendChild(wrap);container.classList.add('visible');
+}
+
+function saveRule(player){
+  const inp=document.getElementById('newRuleInp');
+  const rule=inp.value.trim();if(!rule)return;
+  customRules.push({by:player,rule});
+  updateRulesBar();
+  const s=document.getElementById('subJ');
+  if(s)s.textContent=`Rule added: "${rule}" — anyone who breaks it drinks!`;
+  document.getElementById('actionPanel').innerHTML='';
+  document.getElementById('actionPanel').classList.remove('visible');
+  needAction=false;doneRule();
+}
+
+function getNhie(){
+  let i;do{i=Math.floor(Math.random()*NHIE.length);}while(i===lastNhieIdx&&NHIE.length>1);
+  lastNhieIdx=i;return NHIE[i];
+}
+function rotateNhie(btn){btn.previousElementSibling.textContent=getNhie();}
+
+function updateMatesBar(){
+  const bar=document.getElementById('matesBar'),list=document.getElementById('matesList');
+  const html=[];
+  for(const[player,mate] of Object.entries(mates)){
+    html.push(`<div class="mate-pair">${player} → <span>${mate}</span></div>`);
+  }
+  if(html.length){list.innerHTML=html.join('');bar.classList.add('visible');}
+  else bar.classList.remove('visible');
+}
+
+function updateRulesBar(){
+  const bar=document.getElementById('rulesBar');
+  if(!customRules.length){bar.classList.remove('visible');return;}
+  document.getElementById('rulesList').innerHTML=customRules.map(r=>`<div class="rule-item"><strong>${r.by}:</strong> ${r.rule}</div>`).join('');
+  bar.classList.add('visible');
+}
+
+// ── EXIT & RESTART ──
+document.getElementById('exitGameBtn').onclick=()=>document.getElementById('exitModal').classList.add('open');
+document.getElementById('exitCancelBtn').onclick=()=>document.getElementById('exitModal').classList.remove('open');
+document.getElementById('exitConfirmBtn').onclick=()=>{document.getElementById('exitModal').classList.remove('open');showScreen('setup');};
+function restartGame(){document.getElementById('kcModal').classList.remove('open');startGame();}
+</script>
+</body>
+</html>
