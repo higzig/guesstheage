@@ -159,24 +159,76 @@ body::before{
 
 /* ── PACK SELECT SCREEN ── */
 #packselect{justify-content:flex-start;gap:0;max-width:480px;margin:0 auto;width:100%;}
-.pack-select-sub{font-size:13px;color:var(--muted);text-align:center;letter-spacing:1px;margin-bottom:18px;width:100%;}
-.packs-grid-full{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;}
+.pack-select-sub{font-size:13px;color:var(--muted);text-align:center;letter-spacing:1px;margin-bottom:20px;width:100%;}
+.packs-grid-full{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;}
+
+/* Card-deck style pack cards */
 .pack-card-full{
-  border-radius:18px;padding:20px 16px;cursor:pointer;
-  border:2px solid transparent;position:relative;overflow:hidden;
+  border-radius:20px;cursor:pointer;
+  border:1px solid transparent;position:relative;overflow:hidden;
   transition:transform .2s, box-shadow .2s;
-  min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  text-align:center;
+  min-height:160px;display:flex;flex-direction:column;
+  background:var(--card);
 }
-.pack-card-full:active{transform:scale(0.94);}
-.pack-card-full .pcf-icon{font-size:40px;line-height:1;display:block;margin-bottom:4px;}
-.pack-card-full .pcf-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);line-height:1.1;}
-.pack-card-full .pcf-count{font-size:11px;color:var(--text2);margin-top:4px;}
-.pack-card-full.all-full{grid-column:span 2;flex-direction:row;justify-content:flex-start;gap:16px;min-height:72px;padding:18px 20px;text-align:left;}
-.pack-card-full .pcf-img{width:54px;height:54px;object-fit:contain;margin-bottom:4px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
-.pack-card-full.all-full .pcf-img{width:34px;height:34px;margin-bottom:0;}
-.pack-card-full.all-full .pcf-icon{font-size:28px;margin-bottom:0;}
-.pack-card-full.all-full .pcf-info{display:flex;flex-direction:column;}
+.pack-card-full:active{transform:scale(0.93);}
+
+/* Stacked photo preview behind the content */
+.pcf-photos{
+  position:absolute;inset:0;overflow:hidden;border-radius:20px;
+}
+.pcf-photo-stack{
+  position:absolute;top:0;left:0;right:0;height:105px;overflow:hidden;
+}
+/* Three stacked cards effect */
+.pcf-photo-stack::before,.pcf-photo-stack::after{
+  content:'';position:absolute;
+  top:6px;width:100%;height:92px;border-radius:12px 12px 0 0;
+  background:rgba(255,255,255,.04);
+}
+.pcf-photo-stack::before{
+  left:8px;transform:rotate(3deg);transform-origin:bottom center;
+  background:rgba(255,255,255,.035);
+}
+.pcf-photo-stack::after{
+  right:8px;transform:rotate(-3deg);transform-origin:bottom center;
+  background:rgba(255,255,255,.03);
+}
+.pcf-photo-main{
+  position:absolute;top:0;left:0;right:0;height:100px;
+  background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;
+  border-radius:14px 14px 0 0;
+  overflow:hidden;z-index:1;
+}
+.pcf-photo-main img.pcf-img{
+  width:100%;height:100%;object-fit:cover;object-position:top;
+  border-radius:14px 14px 0 0;
+  filter:brightness(.8);
+}
+/* Bottom colour strip + text */
+.pcf-bottom{
+  position:relative;z-index:2;
+  padding:10px 12px 12px;
+  margin-top:auto;
+}
+.pcf-name{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:var(--text);line-height:1.1;}
+.pcf-count{font-size:10px;color:var(--text2);margin-top:2px;letter-spacing:.5px;}
+
+/* Colour tint border + glow per pack */
+.pack-card-full{border-color:var(--pack-border-color,transparent);}
+
+/* "All" card spans full width, horizontal layout */
+.pack-card-full.all-full{
+  grid-column:span 2;min-height:auto;flex-direction:row;align-items:center;
+  gap:14px;padding:16px 18px;background:var(--card);
+}
+.pack-card-full.all-full .pcf-photos{display:none;}
+.pack-card-full.all-full .pcf-bottom{padding:0;margin:0;}
+.pack-card-full.all-full .pcf-icon-solo{font-size:30px;flex-shrink:0;}
+.pack-card-full.all-full .pcf-img-solo{width:36px;height:36px;object-fit:contain;flex-shrink:0;}
+.pack-card-full.all-full .pcf-name{font-size:17px;}
+.pack-card-full .pcf-icon{font-size:42px;line-height:1;}
 
 
 /* ── SETUP (players screen) ── */
@@ -352,8 +404,54 @@ body::before{
 
 .celeb-card{width:100%;border-radius:22px;overflow:hidden;background:var(--card);border:1px solid var(--border);margin-bottom:14px;animation:slideLeft .3s ease;}
 .img-wrap{position:relative;width:100%;padding-top:88%;overflow:hidden;background:#1a1a28;}
-.img-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;transition:opacity .3s;}
-.img-wrap .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:68px;}
+.img-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;transition:opacity .4s;}
+/* Shimmer skeleton placeholder */
+.img-wrap .ph{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(90deg,#1a1a28 0%,#252538 40%,#2a2a40 50%,#252538 60%,#1a1a28 100%);
+  background-size:300% 100%;
+  animation:imgShimmer 1.8s ease-in-out infinite;
+}
+@keyframes imgShimmer{0%{background-position:100% 0;}100%{background-position:-100% 0;}}
+.ph-silhouette{font-size:52px;opacity:.18;filter:grayscale(1);}
+.ph-lines{display:flex;flex-direction:column;gap:6px;align-items:center;}
+.ph-line{border-radius:4px;background:rgba(255,255,255,.06);}
+
+/* ── SCOREBOARD ── */
+#scores{justify-content:flex-start;gap:0;max-width:460px;margin:0 auto;width:100%;padding-bottom:32px;}
+.scores-header{width:100%;text-align:center;padding:24px 0 20px;}
+.scores-crown{font-size:52px;display:block;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;margin-bottom:6px;}
+.scores-title{font-family:'Bebas Neue',sans-serif;font-size:46px;color:var(--gold);letter-spacing:4px;animation:glow 2s ease-in-out infinite;line-height:1;}
+.scores-subtitle{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:6px;}
+.winner-banner{
+  width:100%;background:linear-gradient(135deg,rgba(245,200,66,.12),rgba(232,160,32,.06));
+  border:1px solid rgba(245,200,66,.3);border-radius:20px;padding:18px 20px;
+  display:flex;align-items:center;gap:14px;margin-bottom:14px;
+  animation:fadeUp .4s .1s ease both;
+}
+.winner-avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#080810;font-family:'Bebas Neue',sans-serif;font-size:22px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 0 20px rgba(245,200,66,.3);
+}
+.winner-info{flex:1;}
+.winner-label{font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:2px;}
+.winner-name{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);letter-spacing:1px;line-height:1.1;}
+.winner-sips{font-size:12px;color:var(--text2);margin-top:3px;}
+.scores-list{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.score-item{width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 17px;display:flex;align-items:center;gap:12px;opacity:0;animation:fadeUp .4s ease forwards;}
+.score-item.winner-item{border-color:rgba(245,200,66,.3);background:linear-gradient(135deg,rgba(245,200,66,.06),var(--card));}
+.rank-n{font-family:'Bebas Neue',sans-serif;font-size:25px;width:32px;text-align:center;flex-shrink:0;}
+.rank-n.gold{color:#ffd700;}.rank-n.silver{color:#c0c0c0;}.rank-n.bronze{color:#cd7f32;}
+.score-name{flex:1;font-size:16px;font-weight:600;}
+.score-sips{font-family:'Bebas Neue',sans-serif;font-size:25px;color:var(--red);display:flex;align-items:center;gap:4px;}
+.scores-actions{width:100%;display:flex;flex-direction:column;gap:10px;}
+.btn-play-again{width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080810;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;cursor:pointer;box-shadow:0 0 24px rgba(245,200,66,.2);}
+.btn-play-again:active{transform:scale(.97);}
+.btn-home{width:100%;padding:14px;border-radius:14px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;cursor:pointer;}
+.btn-home:active{border-color:var(--gold);color:var(--gold);}
 .celeb-bar{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
 .celeb-name{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:1px;}
 .celeb-cat{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
@@ -594,7 +692,13 @@ body::before{
   </div>
   <div class="celeb-card" id="celebCard">
     <div class="img-wrap">
-      <div class="ph" id="imgPh">⭐</div>
+      <div class="ph" id="imgPh">
+        <div class="ph-silhouette">👤</div>
+        <div class="ph-lines">
+          <div class="ph-line" style="width:80px;height:8px;"></div>
+          <div class="ph-line" style="width:55px;height:6px;"></div>
+        </div>
+      </div>
       <img id="celebImg" src="" alt="" style="display:none"
         onload="this.style.display='block';document.getElementById('imgPh').style.display='none';"
         onerror="this.style.display='none';document.getElementById('imgPh').style.display='flex';">
@@ -654,10 +758,17 @@ body::before{
 
 <!-- ═══ SCOREBOARD ═══ -->
 <div id="scores" class="screen">
-  <div class="scores-title">FINAL SCORES</div>
-  <p>Total sips consumed 🍺</p>
-  <div id="scoreList"></div>
-  <button class="btn-play-again" id="playAgainBtn">PLAY AGAIN</button>
+  <div class="scores-header anim-fadeup">
+    <span class="scores-crown">👑</span>
+    <div class="scores-title">FINAL SCORES</div>
+    <div class="scores-subtitle">Total sips consumed 🍺</div>
+  </div>
+  <div id="winnerBanner" class="winner-banner anim-fadeup"></div>
+  <div id="scoreList" class="scores-list"></div>
+  <div class="scores-actions">
+    <button class="btn-play-again" id="playAgainBtn">PLAY AGAIN</button>
+    <button class="btn-home" id="homeFromScores">← Back to Home</button>
+  </div>
 </div>
 
 <script>
@@ -672,7 +783,7 @@ const PACKS = [
   { id:'tvfilm',  name:'TV & Film Pack',         icon:'🎬', color:'#ff9f40', rgb:'255,159,64',  desc:'Stars' },
   { id:'internet',name:'Famous on the Internet', icon:'🤳', color:'#ff5e9f', rgb:'255,94,159',  desc:'Influencers & meme lords' },
   { id:'comedy',  name:'Comedy Pack',            icon:'🎭', color:'#ffd700', rgb:'255,215,0',   desc:'Comedians' },
-
+  { id:'ireland', name:'Irish Pack',             icon:'🍀', color:'#2ecc71', rgb:'46,204,113',  desc:'GAA, rugby & Irish entertainment' },
 ];
 
 // ══════════════════════════════════════════════════════════════
@@ -732,7 +843,6 @@ const DEFAULT_CELEBS = [
   {name:"Sebastian Stan",       dob:"1982-08-13", cat:"🎬 Actor",   packs:["marvel","tvfilm"], img:""},
   {name:"Idris Elba",           dob:"1972-09-06", cat:"🎬 Actor",   packs:["marvel","tvfilm"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Idris_Elba-4882_%28cropped%29.jpg/440px-Idris_Elba-4882_%28cropped%29.jpg"},
   {name:"Gemma Chan",           dob:"1982-11-29", cat:"🎬 Actress", packs:["marvel","tvfilm"], img:""},
-  {name:"Richard E. Grant",     dob:"1957-05-05", cat:"🎬 Actor",   packs:["marvel","tvfilm"], img:""},
   {name:"Natalie Portman",      dob:"1981-06-09", cat:"🎬 Actress", packs:["marvel","tvfilm"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Natalie_Portman_Cannes_2015_%28cropped%29.jpg/440px-Natalie_Portman_Cannes_2015_%28cropped%29.jpg"},
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -832,7 +942,6 @@ const DEFAULT_CELEBS = [
   {name:"Beyoncé",              dob:"1981-09-04", cat:"🎵 Singer",  packs:["music"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Beyonc%C3%A9_at_The_Lion_King_European_Premiere_2019.png/440px-Beyonc%C3%A9_at_The_Lion_King_European_Premiere_2019.png"},
   {name:"Rihanna",              dob:"1988-02-20", cat:"🎵 Singer",  packs:["music"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Rihanna_Fenty_2018.png/440px-Rihanna_Fenty_2018.png"},
   {name:"Ariana Grande",        dob:"1993-06-26", cat:"🎵 Singer",  packs:["music"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Ariana_Grande_at_2020_BBMAs.png/440px-Ariana_Grande_at_2020_BBMAs.png"},
-  {name:"Ed Sheeran",           dob:"1991-02-17", cat:"🎵 Singer",  packs:["music"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Ed_Sheeran-6886_%28cropped%29.jpg/440px-Ed_Sheeran-6886_%28cropped%29.jpg"},
   {name:"Adele",                dob:"1988-05-05", cat:"🎵 Singer",  packs:["music"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Adele_2016.jpg/440px-Adele_2016.jpg"},
   {name:"Harry Styles",         dob:"1994-02-01", cat:"🎵 Singer",  packs:["music"], img:""},
   {name:"Billie Eilish",        dob:"2001-12-18", cat:"🎵 Singer",  packs:["music"], img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Billie_Eilish_2019_by_Glenn_Francis_%28cropped%29.jpg/440px-Billie_Eilish_2019_by_Glenn_Francis_%28cropped%29.jpg"},
@@ -879,7 +988,6 @@ const DEFAULT_CELEBS = [
   {name:"Demi Lovato",          dob:"1992-08-20", cat:"🎵 Singer",  packs:["music"], img:""},
   {name:"Nick Jonas",           dob:"1992-09-16", cat:"🎵 Singer",  packs:["music"], img:""},
   {name:"Zayn Malik",           dob:"1993-01-12", cat:"🎵 Singer",  packs:["music"], img:""},
-  {name:"Niall Horan",          dob:"1993-09-13", cat:"🎵 Singer",  packs:["music"], img:""},
   {name:"Lewis Capaldi",        dob:"1996-10-07", cat:"🎵 Singer",  packs:["music"], img:""},
   {name:"Stormzy",              dob:"1993-07-26", cat:"🎵 Rapper",  packs:["music"], img:""},
   {name:"Dave (Santan Dave)",   dob:"1998-06-05", cat:"🎵 Rapper",  packs:["music"], img:""},
@@ -927,7 +1035,7 @@ const DEFAULT_CELEBS = [
   {name:"Denzel Washington",    dob:"1954-12-28", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
   {name:"Viola Davis",          dob:"1965-08-11", cat:"🎬 Actress", packs:["tvfilm"], img:""},
   {name:"Joaquin Phoenix",      dob:"1974-10-28", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
-  {name:"Cillian Murphy",       dob:"1976-05-25", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
+  {name:"Cillian Murphy",       dob:"1976-05-25", cat:"🎬 Actor",   packs:["tvfilm","ireland"], img:""},
   {name:"Emily Blunt",          dob:"1983-02-23", cat:"🎬 Actress", packs:["tvfilm"], img:""},
   {name:"Anne Hathaway",        dob:"1982-11-12", cat:"🎬 Actress", packs:["tvfilm"], img:""},
   {name:"Ryan Gosling",         dob:"1980-11-12", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
@@ -975,14 +1083,14 @@ const DEFAULT_CELEBS = [
   {name:"Maisie Williams",      dob:"1997-04-15", cat:"🎬 Actress", packs:["tvfilm"], img:""},
   {name:"Jason Momoa",          dob:"1979-08-01", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
   {name:"Jenna Ortega",         dob:"2002-09-27", cat:"🎬 Actress", packs:["tvfilm"], img:""},
-  {name:"Paul Mescal",          dob:"1996-02-02", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
-  {name:"Barry Keoghan",        dob:"1992-10-18", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
+  {name:"Paul Mescal",          dob:"1996-02-02", cat:"🎬 Actor",   packs:["tvfilm","ireland"], img:""},
+  {name:"Barry Keoghan",        dob:"1992-10-18", cat:"🎬 Actor",   packs:["tvfilm","ireland"], img:""},
   {name:"Jacob Elordi",         dob:"1997-06-26", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
   {name:"Glen Powell",          dob:"1988-10-21", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
   {name:"Josh O'Connor",        dob:"1994-05-20", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
   {name:"Nicholas Galitzine",   dob:"1994-09-29", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
   {name:"Phoebe Dynevor",       dob:"1995-04-17", cat:"🎬 Actress", packs:["tvfilm"], img:""},
-  {name:"Nicola Coughlan",      dob:"1987-01-09", cat:"🎬 Actress", packs:["tvfilm"], img:""},
+  {name:"Nicola Coughlan",      dob:"1987-01-09", cat:"🎬 Actress", packs:["tvfilm","ireland"], img:""},
   {name:"Jonathan Bailey",      dob:"1988-04-25", cat:"🎬 Actor",   packs:["tvfilm"], img:""},
   {name:"Simone Ashley",        dob:"1995-03-30", cat:"🎬 Actress", packs:["tvfilm"], img:""},
   {name:"Millie Bobby Brown",   dob:"2004-02-19", cat:"🎬 Actress", packs:["tvfilm"], img:""},
@@ -1138,10 +1246,6 @@ const DEFAULT_CELEBS = [
   {name:"Maisie Adam",          dob:"1995-01-22", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Rosie Jones",          dob:"1990-10-14", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Katherine Ryan",       dob:"1983-06-30", cat:"😂 Comedian", packs:["comedy"], img:""},
-  {name:"Aisling Bea",          dob:"1984-03-16", cat:"😂 Comedian", packs:["comedy"], img:""},
-  {name:"Dara Ó Briain",        dob:"1972-02-04", cat:"😂 Comedian", packs:["comedy"], img:""},
-  {name:"Dylan Moran",          dob:"1971-11-03", cat:"😂 Comedian", packs:["comedy"], img:""},
-  {name:"Ardal O'Hanlon",       dob:"1965-05-08", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Reginald D Hunter",    dob:"1968-12-20", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Sarah Millican",       dob:"1975-05-29", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Milton Jones",         dob:"1964-10-12", cat:"😂 Comedian", packs:["comedy"], img:""},
@@ -1165,13 +1269,114 @@ const DEFAULT_CELEBS = [
   {name:"Barry Humphries",      dob:"1934-02-17", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Nish Kumar",           dob:"1985-07-13", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Fern Brady",           dob:"1986-04-07", cat:"😂 Comedian", packs:["comedy"], img:""},
-  {name:"Babatunde Aleshe",     dob:"1984-01-01", cat:"😂 Comedian", packs:["comedy"], img:""},
-  {name:"Oloni",                dob:"1989-01-01", cat:"😂 Comedian", packs:["comedy"], img:""},
+  {name:"Babatunde Aleshe",     dob:"1984-07-04", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Lolly Adefope",        dob:"1990-04-12", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Hannah Gadsby",        dob:"1978-01-12", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Taylor Tomlinson",     dob:"1993-11-04", cat:"😂 Comedian", packs:["comedy"], img:""},
   {name:"Desi Lydic",           dob:"1981-08-04", cat:"😂 Comedian", packs:["comedy","tvfilm"], img:""},
   {name:"Tig Notaro",           dob:"1971-03-24", cat:"😂 Comedian", packs:["comedy"], img:""},
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // AGE-SURPRISING ADDITIONS (spread across packs)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Marvel women
+  {name:"Salma Hayek",          dob:"1966-09-02", cat:"🎬 Actress", packs:["marvel","tvfilm"], img:""},
+  {name:"Rachel McAdams",       dob:"1978-11-17", cat:"🎬 Actress", packs:["marvel","tvfilm"], img:""},
+  {name:"Rebecca Ferguson",     dob:"1983-10-19", cat:"🎬 Actress", packs:["marvel","tvfilm"], img:""},
+  // TV & Film women
+  {name:"Sharon Stone",         dob:"1958-03-10", cat:"🎬 Actress", packs:["tvfilm"], img:""},
+  {name:"Sofia Vergara",        dob:"1972-07-10", cat:"🎬 Actress", packs:["tvfilm"], img:""},
+  {name:"Lucy Liu",             dob:"1968-12-02", cat:"🎬 Actress", packs:["tvfilm"], img:""},
+  {name:"Monica Bellucci",      dob:"1964-09-30", cat:"🎬 Actress", packs:["tvfilm"], img:""},
+  {name:"Helen Mirren",         dob:"1945-07-26", cat:"🎬 Actress", packs:["tvfilm"], img:""},
+  // Sports women
+  {name:"Marta",                dob:"1986-02-19", cat:"⚽ Footballer", packs:["sport"], img:""},
+  {name:"Sam Kerr",             dob:"1993-09-10", cat:"⚽ Footballer", packs:["sport"], img:""},
+  {name:"Alexia Putellas",      dob:"1994-02-04", cat:"⚽ Footballer", packs:["sport"], img:""},
+  {name:"Ada Hegerberg",        dob:"1995-07-10", cat:"⚽ Footballer", packs:["sport"], img:""},
+  {name:"Iga Świątek",          dob:"2001-05-31", cat:"🎾 Tennis",     packs:["sport"], img:""},
+  {name:"Aryna Sabalenka",      dob:"1998-05-05", cat:"🎾 Tennis",     packs:["sport"], img:""},
+  {name:"Alex Morgan",          dob:"1989-07-02", cat:"⚽ Footballer", packs:["sport"], img:""},
+  {name:"Megan Rapinoe",        dob:"1985-07-05", cat:"⚽ Footballer", packs:["sport"], img:""},
+  // Music women
+  {name:"Janet Jackson",        dob:"1966-05-16", cat:"🎵 Singer",  packs:["music"], img:""},
+  {name:"Mariah Carey",         dob:"1969-03-27", cat:"🎵 Singer",  packs:["music"], img:""},
+  {name:"Whitney Houston",      dob:"1963-08-09", cat:"🎵 Singer",  packs:["music"], img:""},
+  {name:"Kylie Minogue",        dob:"1968-05-28", cat:"🎵 Singer",  packs:["music"], img:""},
+  {name:"Gwen Stefani",         dob:"1969-10-03", cat:"🎵 Singer",  packs:["music"], img:""},
+  {name:"Mary J. Blige",        dob:"1971-01-11", cat:"🎵 Singer",  packs:["music"], img:""},
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // IRISH PACK
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // GAA
+  {name:"Ciarán Kilkenny",      dob:"1993-07-07", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"David Clifford",       dob:"2000-09-14", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Seán O'Shea",          dob:"1999-01-29", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Con O'Callaghan",      dob:"1997-09-01", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Shane Walsh",          dob:"1995-10-28", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Paudie Clifford",      dob:"1998-05-08", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Diarmuid O'Connor",    dob:"1999-06-05", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Cathal McShane",       dob:"1997-09-13", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Brian Fenton",         dob:"1993-04-25", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Stephen Cluxton",      dob:"1981-09-30", cat:"🏐 GAA",  packs:["ireland"], img:""},
+  {name:"Mike Hamill",          dob:"1982-02-10", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"TJ Reid",              dob:"1989-10-01", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Cian Lynch",           dob:"1997-12-27", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Gearóid Hegarty",      dob:"1995-09-29", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Aaron Gillane",        dob:"1997-12-01", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Tony Kelly",           dob:"1993-09-20", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Shane Kingston",       dob:"1998-09-10", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Diarmaid Byrnes",      dob:"1996-02-19", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Davy Fitzgerald",      dob:"1972-01-25", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"Henry Shefflin",       dob:"1979-01-11", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  {name:"D.J. Carey",           dob:"1970-11-10", cat:"🏑 Hurling", packs:["ireland"], img:""},
+  // Irish Rugby
+  {name:"Jonathan Sexton",      dob:"1985-07-11", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Brian O'Driscoll",     dob:"1979-01-21", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Rob Kearney",          dob:"1986-03-26", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Caelan Doris",         dob:"1998-02-21", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Andrew Porter",        dob:"1996-01-30", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Jamison Gibson-Park",  dob:"1993-02-27", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Hugo Keenan",          dob:"1996-05-05", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Garry Ringrose",       dob:"1995-01-26", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Ronan O'Gara",         dob:"1977-03-07", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Peter O'Mahony",       dob:"1989-09-06", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Tadhg Furlong",        dob:"1992-11-14", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  {name:"Paul O'Connell",       dob:"1979-10-20", cat:"🏉 Rugby",  packs:["ireland","sport"], img:""},
+  // Irish Entertainment
+  {name:"Saoirse Ronan",        dob:"1994-04-12", cat:"🎬 Actress", packs:["ireland","tvfilm"], img:""},
+  {name:"Colin Farrell",        dob:"1976-05-31", cat:"🎬 Actor",   packs:["ireland","tvfilm"], img:""},
+  {name:"Pierce Brosnan",       dob:"1953-05-16", cat:"🎬 Actor",   packs:["ireland","tvfilm"], img:""},
+  {name:"Liam Neeson",          dob:"1952-06-07", cat:"🎬 Actor",   packs:["ireland","tvfilm"], img:""},
+  {name:"Richard E. Grant",     dob:"1957-05-05", cat:"🎬 Actor",   packs:["marvel","tvfilm"], img:""},
+  {name:"Andrew Scott",         dob:"1976-10-21", cat:"🎬 Actor",   packs:["ireland","tvfilm"], img:""},
+  {name:"Ruth Negga",           dob:"1982-01-07", cat:"🎬 Actress", packs:["ireland","tvfilm"], img:""},
+  {name:"Jessie Buckley",       dob:"1989-12-28", cat:"🎬 Actress", packs:["ireland","tvfilm"], img:""},
+  {name:"Brendan Gleeson",      dob:"1955-03-29", cat:"🎬 Actor",   packs:["ireland","tvfilm"], img:""},
+  {name:"Gabriel Byrne",        dob:"1950-05-12", cat:"🎬 Actor",   packs:["ireland","tvfilm"], img:""},
+  {name:"Domhnall Gleeson",     dob:"1983-05-12", cat:"🎬 Actor",   packs:["ireland","tvfilm"], img:""},
+  {name:"Sharon Horgan",        dob:"1970-07-13", cat:"🎬 Actress", packs:["ireland","tvfilm","comedy"], img:""},
+  {name:"Aisling Bea",          dob:"1984-03-16", cat:"😂 Comedian", packs:["ireland","comedy"], img:""},
+  {name:"Dara Ó Briain",        dob:"1972-02-04", cat:"😂 Comedian", packs:["ireland","comedy"], img:""},
+  {name:"Dylan Moran",          dob:"1971-11-03", cat:"😂 Comedian", packs:["ireland","comedy"], img:""},
+  {name:"Tommy Tiernan",        dob:"1969-08-11", cat:"😂 Comedian", packs:["ireland","comedy"], img:""},
+  {name:"Ardal O'Hanlon",       dob:"1965-05-08", cat:"😂 Comedian", packs:["ireland","comedy"], img:""},
+  {name:"Ed Sheeran",           dob:"1991-02-17", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Hozier",               dob:"1990-03-17", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Dermot Kennedy",       dob:"1991-12-04", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Niall Horan",          dob:"1993-09-13", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Sinéad O'Connor",      dob:"1966-12-08", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Bono",                 dob:"1960-05-10", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"The Edge",             dob:"1961-08-08", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Ryan Tubridy",         dob:"1973-05-28", cat:"📺 TV Host", packs:["ireland"], img:""},
+  {name:"Pat Kenny",            dob:"1945-09-25", cat:"📺 TV Host", packs:["ireland"], img:""},
+  {name:"Miriam O'Callaghan",   dob:"1960-05-27", cat:"📺 TV Host", packs:["ireland"], img:""},
+  {name:"Anne Doyle",           dob:"1953-12-20", cat:"📺 TV Host", packs:["ireland"], img:""},
+  {name:"Kathryn Thomas",       dob:"1979-02-10", cat:"📺 TV Host", packs:["ireland"], img:""},
+  {name:"Nicky Byrne",          dob:"1978-10-09", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Ronan Keating",        dob:"1977-03-03", cat:"🎵 Singer",  packs:["ireland","music"], img:""},
+  {name:"Louis Walsh",          dob:"1952-08-05", cat:"📺 TV Host", packs:["ireland"], img:""},
 
 ];
 
@@ -1201,11 +1406,12 @@ function age(dob){
 }
 function fmtDob(dob){ return new Date(dob).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}); }
 function verdict(diff){
-  if(diff===0)return{msg:"🎯 PERFECT! Give out 5 sips!",cls:"great",sips:0};
-  if(diff===1)return{msg:"🔥 1 year off — 1 sip!",cls:"great",sips:1};
-  if(diff<=5) return{msg:`😬 ${diff} years off — ${diff} sips!`,cls:"good",sips:diff};
-  if(diff<=10)return{msg:`😅 ${diff} years off — ${diff} sips!`,cls:"good",sips:diff};
-  return{msg:`💀 ${diff} years off — ${diff} sips!`,cls:"bad",sips:diff};
+  if(diff===0)return{msg:"🎯 PERFECT! No sips for you!",cls:"great",sips:0};
+  if(diff===1)return{msg:"🔥 Only 1 year off — 1 sip!",cls:"great",sips:1};
+  if(diff<=3) return{msg:`😅 ${diff} years off — ${diff} sips!`,cls:"good",sips:diff};
+  if(diff<=7) return{msg:`😬 ${diff} years off — ${diff} sips!`,cls:"good",sips:diff};
+  if(diff<=15)return{msg:`💀 ${diff} years off — ${diff} sips!`,cls:"bad",sips:diff};
+  return{msg:`☠️ ${diff} years off — ${diff} sips. Ouch.`,cls:"bad",sips:diff};
 }
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1434,6 +1640,7 @@ document.getElementById('backEditor').onclick=()=>showScreen('home');
 
 // ══════════════════════════════════════════════════════════════
 // PACK SELECT GRID (single-select, tap to launch)
+// Card-deck style with stacked photo preview
 // ══════════════════════════════════════════════════════════════
 function buildPackSelectGrid(){
   const grid=document.getElementById('packsGridFull');
@@ -1442,16 +1649,63 @@ function buildPackSelectGrid(){
     const cnt=pk.id==='all'?celebs.length:celebs.filter(c=>c.packs.includes(pk.id)).length;
     const card=document.createElement('div');
     card.className='pack-card-full'+(pk.id==='all'?' all-full':'');
-    card.style.background=`linear-gradient(135deg, rgba(${pk.rgb},.10) 0%, var(--card2) 100%)`;
-    card.style.border=`2px solid rgba(${pk.rgb},.25)`;
-    card.style.boxShadow=`0 4px 24px rgba(${pk.rgb},.08)`;
-    const iconHtml = pk.img
-      ? `<img class="pcf-img" src="${pk.img}" alt="${pk.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="pcf-icon" style="display:none">${pk.icon}</span>`
-      : `<span class="pcf-icon">${pk.icon}</span>`;
+
+    // Colour theme per pack
+    card.style.setProperty('--pack-rgb',pk.rgb);
+    card.style.borderColor=`rgba(${pk.rgb},.28)`;
+    card.style.boxShadow=`0 4px 28px rgba(${pk.rgb},.10)`;
+
     if(pk.id==='all'){
-      card.innerHTML=`${iconHtml}<div class="pcf-info"><div class="pcf-name">${pk.name}</div><div class="pcf-count">${cnt} celebrities</div></div>`;
+      // "All" card: simple horizontal strip
+      const iconHtml = pk.img
+        ? `<img class="pcf-img-solo" src="${pk.img}" alt="${pk.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="pcf-icon-solo" style="display:none">${pk.icon}</span>`
+        : `<span class="pcf-icon-solo">${pk.icon}</span>`;
+      card.style.background=`linear-gradient(135deg,rgba(${pk.rgb},.10),var(--card))`;
+      card.innerHTML=`${iconHtml}<div class="pcf-bottom"><div class="pcf-name">${pk.name}</div><div class="pcf-count">${cnt} celebrities</div></div>`;
     } else {
-      card.innerHTML=`${iconHtml}<div class="pcf-name">${pk.name}</div><div class="pcf-count">${cnt} people</div>`;
+      // Card-deck style: photo area + bottom label strip
+      card.style.background=`linear-gradient(160deg,rgba(${pk.rgb},.13) 0%,var(--card) 70%)`;
+
+      // Pick 3 random celebs from this pack that have images for the stacked preview
+      const packCelebs = celebs.filter(c=>c.packs.includes(pk.id)&&c.img);
+      const shuffled = packCelebs.sort(()=>Math.random()-.5).slice(0,3);
+
+      // Build stacked cards behind the main image
+      let stackedCards = '';
+      if(shuffled.length>=2){
+        stackedCards=`
+          <div style="position:absolute;top:6px;left:6px;right:6px;height:90px;border-radius:12px;overflow:hidden;transform:rotate(-3deg);transform-origin:bottom center;opacity:.5;z-index:0;background:rgba(${pk.rgb},.12);">
+            ${shuffled[1]?.img?`<img src="${shuffled[1].img}" style="width:100%;height:100%;object-fit:cover;object-position:top;" onerror="this.style.display='none'">`:''}
+          </div>`;
+      }
+      if(shuffled.length>=3){
+        stackedCards+=`
+          <div style="position:absolute;top:4px;left:4px;right:4px;height:90px;border-radius:12px;overflow:hidden;transform:rotate(2.5deg);transform-origin:bottom center;opacity:.55;z-index:0;background:rgba(${pk.rgb},.15);">
+            ${shuffled[2]?.img?`<img src="${shuffled[2].img}" style="width:100%;height:100%;object-fit:cover;object-position:top;" onerror="this.style.display='none'">`:''}
+          </div>`;
+      }
+
+      // Main photo or emoji fallback
+      const mainContent = pk.img
+        ? `<img src="${pk.img}" style="width:100%;height:100%;object-fit:contain;padding:6px;filter:brightness(.9);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        : (shuffled[0]?.img
+            ? `<img src="${shuffled[0].img}" style="width:100%;height:100%;object-fit:cover;object-position:top;filter:brightness(.75);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            : '');
+      const emojiFallback = `<div style="font-size:44px;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${pk.icon}</div>`;
+
+      card.innerHTML=`
+        <div style="position:relative;width:100%;height:106px;overflow:visible;">
+          ${stackedCards}
+          <div style="position:absolute;inset:0;border-radius:14px 14px 0 0;overflow:hidden;z-index:1;background:rgba(${pk.rgb},.08);">
+            ${mainContent}
+            ${emojiFallback}
+          </div>
+          <div style="position:absolute;inset:0;z-index:2;border-radius:14px 14px 0 0;background:linear-gradient(to bottom,transparent 50%,rgba(${pk.rgb},.18) 100%);"></div>
+        </div>
+        <div class="pcf-bottom" style="background:linear-gradient(to right,rgba(${pk.rgb},.08),transparent);">
+          <div class="pcf-name">${pk.name}</div>
+          <div class="pcf-count">${cnt} celebrities</div>
+        </div>`;
     }
     card.onclick=()=>launchWithPack(pk.id);
     grid.appendChild(card);
@@ -1730,19 +1984,35 @@ document.getElementById('nextBtn').onclick=()=>{
 
 function showScores(){
   const sorted=players.map((n,i)=>({n,s:scores[i]})).sort((a,b)=>b.s-a.s);
+  const winner=sorted[0];
+
+  // Winner banner
+  const banner=document.getElementById('winnerBanner');
+  const initials=winner.n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  banner.innerHTML=`
+    <div class="winner-avatar">${initials}</div>
+    <div class="winner-info">
+      <div class="winner-label">Most sips 🏆</div>
+      <div class="winner-name">${winner.n}</div>
+      <div class="winner-sips">${winner.s} sip${winner.s!==1?'s':''} total — the real loser tonight</div>
+    </div>`;
+
+  // Score list
   const list=document.getElementById('scoreList'); list.innerHTML='';
   sorted.forEach((p,i)=>{
-    const d=document.createElement('div'); d.className='score-item';
-    d.style.animationDelay=`${i*.1}s`;
+    const d=document.createElement('div');
+    d.className='score-item'+(i===0?' winner-item':'');
+    d.style.animationDelay=`${i*.08+.2}s`;
     const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
     const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
-    d.innerHTML=`<div class="rank-n ${rc}">${m}</div><div class="score-name">${p.n}</div><div class="score-sips">${p.s}<span>🍺</span></div>`;
+    d.innerHTML=`<div class="rank-n ${rc}">${m}</div><div class="score-name">${p.n}</div><div class="score-sips">${p.s}<span style="font-size:16px;margin-left:2px">🍺</span></div>`;
     list.appendChild(d);
   });
   showScreen('scores');
 }
 
 document.getElementById('playAgainBtn').onclick=()=>showScreen('home');
+document.getElementById('homeFromScores').onclick=()=>showScreen('home');
 
 // ── EXIT GAME ──────────────────────────────────────────────────
 document.getElementById('exitGameBtn').onclick=()=>document.getElementById('exitModal').classList.add('open');
