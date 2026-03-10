@@ -135,9 +135,89 @@ body::before{
 }
 .logo-tagline::after{background:linear-gradient(to left,transparent,rgba(245,200,66,.3));}
 
-/* ── SETUP ── */
-#setup{justify-content:flex-start;gap:18px;max-width:460px;margin:0 auto;width:100%;}
-.player-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+/* ── HOME SCREEN ── */
+#home{justify-content:center;}
+.home-inner{display:flex;flex-direction:column;align-items:center;width:100%;max-width:380px;gap:0;}
+.home-inner .logo-wrap{margin-bottom:36px;}
+.home-btns{display:flex;flex-direction:column;gap:12px;width:100%;}
+.btn-home-secondary{
+  width:100%;padding:15px;border-radius:14px;
+  border:1px solid var(--border2);background:rgba(255,255,255,.03);
+  color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:20px;
+  letter-spacing:2px;cursor:pointer;transition:all .2s;
+}
+.btn-home-secondary:active{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.06);}
+
+/* ── SCREEN NAV BAR ── */
+.screen-nav{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:18px;
+}
+.screen-nav-title{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--gold);
+}
+
+/* ── PACK SELECT SCREEN ── */
+#packselect{justify-content:flex-start;gap:0;max-width:480px;margin:0 auto;width:100%;}
+.pack-select-sub{font-size:13px;color:var(--muted);text-align:center;letter-spacing:1px;margin-bottom:18px;width:100%;}
+.packs-grid-full{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;}
+.pack-card-full{
+  border-radius:18px;padding:20px 16px;cursor:pointer;
+  border:2px solid transparent;position:relative;overflow:hidden;
+  transition:transform .2s, box-shadow .2s;
+  min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  text-align:center;
+}
+.pack-card-full:active{transform:scale(0.94);}
+.pack-card-full .pcf-icon{font-size:40px;line-height:1;display:block;margin-bottom:4px;}
+.pack-card-full .pcf-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);line-height:1.1;}
+.pack-card-full .pcf-count{font-size:11px;color:var(--text2);margin-top:4px;}
+.pack-card-full.all-full{grid-column:span 2;flex-direction:row;justify-content:flex-start;gap:16px;min-height:72px;padding:18px 20px;text-align:left;}
+.pack-card-full .pcf-img{width:54px;height:54px;object-fit:contain;margin-bottom:4px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
+.pack-card-full.all-full .pcf-img{width:34px;height:34px;margin-bottom:0;}
+.pack-card-full.all-full .pcf-icon{font-size:28px;margin-bottom:0;}
+.pack-card-full.all-full .pcf-info{display:flex;flex-direction:column;}
+
+
+/* ── SETUP (players screen) ── */
+#setup{justify-content:flex-start;gap:14px;max-width:460px;margin:0 auto;width:100%;}
+
+/* ── PLAYER CHIPS ── */
+.player-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;min-height:10px;}
+.player-chip{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.28);
+  border-radius:30px;padding:8px 14px;
+  font-size:14px;font-weight:500;color:var(--text);
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.chip-remove{
+  width:18px;height:18px;border-radius:50%;
+  background:rgba(255,255,255,.07);border:none;
+  color:var(--muted);font-size:11px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;flex-shrink:0;
+}
+.chip-remove:active{background:rgba(255,94,94,.25);color:#ff5e5e;}
+.add-player-row{display:flex;gap:10px;margin-bottom:4px;}
+.player-input{
+  flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border2);
+  border-radius:12px;padding:11px 14px;
+  font-family:'Outfit',sans-serif;font-size:15px;color:var(--text);
+  outline:none;transition:border-color .2s;
+}
+.player-input::placeholder{color:#303048;}
+.player-input:focus{border-color:rgba(245,200,66,.5);}
+.add-player-btn{
+  width:46px;height:46px;border-radius:12px;
+  background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.3);
+  color:var(--gold);font-size:24px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,transform .15s;flex-shrink:0;
+}
+.add-player-btn:active{transform:scale(.92);background:rgba(245,200,66,.25);}
+
+
 .player-row label{font-size:14px;color:var(--text2);flex:1;}
 .counter{display:flex;align-items:center;gap:10px;}
 .cnt-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
@@ -340,36 +420,49 @@ body::before{
 </head>
 <body>
 
-<!-- ═══ SETUP ═══ -->
-<div id="setup" class="screen active">
-  <div class="logo-wrap anim-fadeup">
-    <!-- Number mosaic grid -->
-    <div class="logo-numgrid" id="logoGrid">
-      <div class="nc dim">18</div><div class="nc mid">34</div><div class="nc dim">72</div><div class="nc bright">25</div>
-      <div class="nc bright">61</div><div class="nc dim">29</div><div class="nc hero">?</div><div class="nc mid">47</div>
-      <div class="nc mid">83</div><div class="nc bright">19</div><div class="nc dim">55</div><div class="nc bright">38</div>
-      <div class="nc dim">44</div><div class="nc mid">67</div><div class="nc bright">31</div><div class="nc dim">90</div>
+<!-- ═══ HOME ═══ -->
+<div id="home" class="screen active">
+  <div class="home-inner">
+    <div class="logo-wrap anim-fadeup">
+      <!-- Number mosaic grid -->
+      <div class="logo-numgrid" id="logoGrid">
+        <div class="nc dim">18</div><div class="nc mid">34</div><div class="nc dim">72</div><div class="nc bright">25</div>
+        <div class="nc bright">61</div><div class="nc dim">29</div><div class="nc hero">?</div><div class="nc mid">47</div>
+        <div class="nc mid">83</div><div class="nc bright">19</div><div class="nc dim">55</div><div class="nc bright">38</div>
+        <div class="nc dim">44</div><div class="nc mid">67</div><div class="nc bright">31</div><div class="nc dim">90</div>
+      </div>
+      <div class="logo-title-wrap">
+        <div class="logo-title">THE AGE<br>GAP</div>
+      </div>
+      <div class="logo-tagline">Drink the difference</div>
     </div>
-    <div class="logo-title-wrap">
-      <div class="logo-title">THE AGE<br>GAP</div>
+
+    <div class="home-btns anim-fadeup" style="animation-delay:.15s">
+      <button class="btn-gold" id="homePlayBtn">PLAY →</button>
+      <button class="btn-home-secondary" id="homeEditBtn">➕ Add Celebs</button>
     </div>
-    <div class="logo-tagline">Drink the difference</div>
+    <button class="btn-ghost anim-fadeup" style="animation-delay:.25s;width:100%;text-align:center;margin-top:8px;" onclick="window.location.href='ryans-party-pack.html'">← Back to Party Pack</button>
+  </div>
+</div>
+
+<!-- ═══ PLAYERS SETUP ═══ -->
+<div id="setup" class="screen">
+  <div class="screen-nav anim-fadeup">
+    <button class="btn-ghost" id="backToHome">← Back</button>
+    <div class="screen-nav-title">Players</div>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="card anim-fadeup" style="animation-delay:.05s">
+    <h2>👥 Players</h2>
+    <div class="player-chips" id="playerChips"></div>
+    <div class="add-player-row">
+      <input type="text" class="player-input" id="playerNameInput" placeholder="Enter name…" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="add-player-btn" id="addPlayerBtn">+</button>
+    </div>
   </div>
 
   <div class="card anim-fadeup" style="animation-delay:.1s">
-    <h2>👥 Players</h2>
-    <div class="player-row">
-      <label>How many players?</label>
-      <div class="counter">
-        <button class="cnt-btn" id="decP">−</button>
-        <div class="cnt-val" id="pCount">2</div>
-        <button class="cnt-btn" id="incP">+</button>
-      </div>
-    </div>
-    <div id="playerNames"></div>
-  </div>
-
-  <div class="card anim-fadeup" style="animation-delay:.15s">
     <h2>🎮 Rounds</h2>
     <div class="player-row" style="margin-bottom:0">
       <label>Celebrities per player</label>
@@ -381,17 +474,18 @@ body::before{
     </div>
   </div>
 
-  <div class="card packs-section anim-fadeup" style="animation-delay:.2s">
-    <h2>🎴 Choose Packs</h2>
-    <div class="packs-grid" id="packsGrid"></div>
-    <div class="pack-pool-count" id="poolCount"></div>
-  </div>
+  <button class="btn-gold anim-fadeup" id="toPacksBtn" style="animation-delay:.15s;width:100%;margin-top:4px;opacity:0.4;" disabled>CHOOSE A PACK →</button>
+</div>
 
-  <div class="setup-actions anim-fadeup" style="animation-delay:.25s">
-    <button class="btn-secondary" id="editBtn">➕ Add Celebs</button>
-    <button class="btn-gold" id="startBtn" style="flex:2">ENTER THE GAP →</button>
+<!-- ═══ PACK SELECT ═══ -->
+<div id="packselect" class="screen">
+  <div class="screen-nav anim-fadeup">
+    <button class="btn-ghost" id="backToSetup">← Back</button>
+    <div class="screen-nav-title">Pick a Pack</div>
+    <div style="width:60px"></div>
   </div>
-  <button class="btn-ghost anim-fadeup" style="animation-delay:.3s;width:100%;text-align:center;margin-top:4px;" onclick="window.location.href='ryans-party-pack.html'">← Back to Party Pack</button>
+  <p class="pack-select-sub anim-fadeup" style="animation-delay:.05s">Tap a pack to start playing</p>
+  <div class="packs-grid-full" id="packsGridFull"></div>
 </div>
 
 <!-- Exit Game Confirmation -->
@@ -572,7 +666,7 @@ body::before{
 // ══════════════════════════════════════════════════════════════
 const PACKS = [
   { id:'all',     name:'All Celebrities',       icon:'🌟', color:'#f5c842', rgb:'245,200,66',  desc:'Everyone!' },
-  { id:'marvel',  name:'Marvel Stars',           icon:'🦸', color:'#e8242f', rgb:'232,36,47',   desc:'MCU cast' },
+  { id:'marvel',  name:'Marvel Stars',           icon:'🦸', img:'Images/Marvel_Logo.svg', color:'#e8242f', rgb:'232,36,47',   desc:'MCU cast' },
   { id:'sport',   name:'Sports Pack',            icon:'🏆', color:'#5eb8ff', rgb:'94,184,255',  desc:'Athletes' },
   { id:'music',   name:'Music Pack',             icon:'🎵', color:'#c05eff', rgb:'192,94,255',  desc:'Artists' },
   { id:'tvfilm',  name:'TV & Film Pack',         icon:'🎬', color:'#ff9f40', rgb:'255,159,64',  desc:'Stars' },
@@ -1335,32 +1429,106 @@ document.getElementById('saveEdit').onclick=()=>{
   document.getElementById('editModal').classList.remove('open');
 };
 
-document.getElementById('editBtn').onclick=()=>{
+document.getElementById('backEditor').onclick=()=>showScreen('home');
+
+// ══════════════════════════════════════════════════════════════
+// PACK SELECT GRID (single-select, tap to launch)
+// ══════════════════════════════════════════════════════════════
+function buildPackSelectGrid(){
+  const grid=document.getElementById('packsGridFull');
+  grid.innerHTML='';
+  PACKS.forEach(pk=>{
+    const cnt=pk.id==='all'?celebs.length:celebs.filter(c=>c.packs.includes(pk.id)).length;
+    const card=document.createElement('div');
+    card.className='pack-card-full'+(pk.id==='all'?' all-full':'');
+    card.style.background=`linear-gradient(135deg, rgba(${pk.rgb},.10) 0%, var(--card2) 100%)`;
+    card.style.border=`2px solid rgba(${pk.rgb},.25)`;
+    card.style.boxShadow=`0 4px 24px rgba(${pk.rgb},.08)`;
+    const iconHtml = pk.img
+      ? `<img class="pcf-img" src="${pk.img}" alt="${pk.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="pcf-icon" style="display:none">${pk.icon}</span>`
+      : `<span class="pcf-icon">${pk.icon}</span>`;
+    if(pk.id==='all'){
+      card.innerHTML=`${iconHtml}<div class="pcf-info"><div class="pcf-name">${pk.name}</div><div class="pcf-count">${cnt} celebrities</div></div>`;
+    } else {
+      card.innerHTML=`${iconHtml}<div class="pcf-name">${pk.name}</div><div class="pcf-count">${cnt} people</div>`;
+    }
+    card.onclick=()=>launchWithPack(pk.id);
+    grid.appendChild(card);
+  });
+}
+
+function launchWithPack(packId){
+  selPacks = packId==='all' ? new Set(['all']) : new Set([packId]);
+  savePacks();
+  activePool=getPool();
+  if(!activePool.length){alert('No celebrities in this pack yet!');return;}
+  players=[...playerNames];
+  scores=players.map(()=>0);
+  streaks=players.map(()=>0);
+  rounds=numR; curP=0; curTurn=0; totalTurns=numP*rounds; used=[];
+  showScreen('game'); loadCeleb();
+}
+
+
+document.getElementById('homePlayBtn').onclick=()=>{
+  playerNames=[];renderChips();
+  setTimeout(()=>document.getElementById('playerNameInput').focus(),300);
+  showScreen('setup');
+};
+document.getElementById('homeEditBtn').onclick=()=>{
   buildPackChips('packChips',[]);
   renderCelebList();showScreen('editor');
 };
-document.getElementById('backEditor').onclick=()=>{buildPackGrid();showScreen('setup');};
+document.getElementById('backToHome').onclick=()=>showScreen('home');
+document.getElementById('toPacksBtn').onclick=()=>{buildPackSelectGrid();showScreen('packselect');};
+document.getElementById('backToSetup').onclick=()=>showScreen('setup');
 
 // ══════════════════════════════════════════════════════════════
-// SETUP LOGIC
+// SETUP LOGIC — chip-based players
 // ══════════════════════════════════════════════════════════════
-let numP=2, numR=3;
+let numP=0, numR=3;
+let playerNames=[];
 
-function renderPlayers(){
-  const c=document.getElementById('playerNames'); c.innerHTML='';
-  for(let i=0;i<numP;i++){
-    const r=document.createElement('div'); r.className='prow';
-    r.innerHTML=`<div class="pdot">${i+1}</div><input class="text-inp" type="text" placeholder="Player ${i+1}" id="pn${i}" maxlength="16">`;
-    c.appendChild(r);
-  }
+function renderChips(){
+  const c=document.getElementById('playerChips');
+  c.innerHTML='';
+  playerNames.forEach((name,i)=>{
+    const chip=document.createElement('div');
+    chip.className='player-chip';
+    chip.innerHTML=`<span>${name}</span><button class="chip-remove" onclick="removePlayer(${i})">✕</button>`;
+    c.appendChild(chip);
+  });
+  numP=playerNames.length;
+  updateToPacksBtn();
 }
-renderPlayers(); buildPackGrid(); buildPackChips('packChips',[]);
 
-document.getElementById('decP').onclick=()=>{if(numP>1){numP--;document.getElementById('pCount').textContent=numP;renderPlayers();}};
-document.getElementById('incP').onclick=()=>{if(numP<10){numP++;document.getElementById('pCount').textContent=numP;renderPlayers();}};
+function removePlayer(i){
+  playerNames.splice(i,1);
+  renderChips();
+}
+
+function updateToPacksBtn(){
+  document.getElementById('toPacksBtn').disabled=playerNames.length<2;
+  document.getElementById('toPacksBtn').style.opacity=playerNames.length<2?'0.4':'1';
+}
+
+function addPlayer(){
+  const input=document.getElementById('playerNameInput');
+  const name=input.value.trim();
+  if(!name||playerNames.length>=10)return;
+  if(playerNames.includes(name)){input.value='';return;}
+  playerNames.push(name);
+  input.value='';
+  renderChips();
+  input.focus();
+}
+
+document.getElementById('addPlayerBtn').onclick=addPlayer;
+document.getElementById('playerNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')addPlayer();});
 document.getElementById('decR').onclick=()=>{if(numR>1){numR--;document.getElementById('rCount').textContent=numR;}};
 document.getElementById('incR').onclick=()=>{if(numR<10){numR++;document.getElementById('rCount').textContent=numR;}};
 
+renderChips(); buildPackChips('packChips',[]);
 // ══════════════════════════════════════════════════════════════
 // GAME LOGIC
 // ══════════════════════════════════════════════════════════════
@@ -1370,16 +1538,7 @@ let used=[],curCeleb=null,curGuess='';
 let streaks=[]; // hot streak counter per player
 let activePool=[];
 
-document.getElementById('startBtn').onclick=()=>{
-  activePool=getPool();
-  if(!activePool.length){alert('No celebrities in selected packs! Choose more packs.');return;}
-  players=[];
-  for(let i=0;i<numP;i++){const inp=document.getElementById(`pn${i}`);players.push(inp.value.trim()||`Player ${i+1}`);}
-  scores=players.map(()=>0);
-  streaks=players.map(()=>0);
-  rounds=numR; curP=0; curTurn=0; totalTurns=numP*rounds; used=[];
-  showScreen('game'); loadCeleb();
-};
+// startBtn removed — game now launches from pack select screen
 
 document.querySelectorAll('.np').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -1582,14 +1741,14 @@ function showScores(){
   showScreen('scores');
 }
 
-document.getElementById('playAgainBtn').onclick=()=>showScreen('setup');
+document.getElementById('playAgainBtn').onclick=()=>showScreen('home');
 
 // ── EXIT GAME ──────────────────────────────────────────────────
 document.getElementById('exitGameBtn').onclick=()=>document.getElementById('exitModal').classList.add('open');
 document.getElementById('exitCancelBtn').onclick=()=>document.getElementById('exitModal').classList.remove('open');
 document.getElementById('exitConfirmBtn').onclick=()=>{
   document.getElementById('exitModal').classList.remove('open');
-  showScreen('setup');
+  showScreen('home');
 };
 
 // ── LOGO NUMBER ANIMATION ─────────────────────────────────────
